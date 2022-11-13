@@ -1,0 +1,851 @@
+ALT	see all shortcuts on the Ribbon
+	
+CTL+F	Find and Replace
+CTL+Y	Redo the last action
+CTL+G	Goto Cell (same as F5)
+	
+F2	Edit Active Cell
+F4	Cycles thru a highlighted formula
+F5	Goto Cell (same as CTL-G)
+F12	Save As
+	
+Ctrl+9	Hide the selected rows
+Ctrl+0	Hide the selected columns
+	
+CTL+[ and ]	Move between dependent/precedent cells
+CTL+`	Show/Hide Formulas
+Ctrl+F1	Expand or collapse the ribbon
+Ctrl+F3	Name Manager
+Ctrl+F6	Flip between 2 open workbooks
+Ctrl+ATL+F6	Flip between all open workbooks
+CTL+Arrow	Move to the end
+CTL+Shift+Arrow	Select to the end
+
+ALT+F11	VBA Editor
+	
+Ctrl+Shift+F1	Full Screen
+Ctrl+Shift+F3	Creates a Name for what you selected
+Ctrl+Shift+Arrow	Select all to the end
+Ctrl+Shift+G	See statistics
+Ctrl+Shift+U	Expand or collapse the formula bar.
+Ctrl+Shift+End	Select all text in the formula bar from the cursor position to the end
+Ctrl+Shift+Enter	Force excel to accept the edit
+	
+F2+Enter	Calculate Cell
+F9	calc all books
+Shift+F9	calc active sheet
+CTL+Shift+F9	calc all books even if they don’t need it
+CTL+ALT+Shift+F9	calc all books even if they don’t need it
+	
+CTL+F5	Refresh External Data in sheet
+Ctrl+Alt+F5	Refresh External Data in book
+	
+WIN+Shift-Enter	Tell an App to pick this monitor
+WIN+Shift-Arrow	Move an App to new monitor
+
+
+
+
+
+---------------------------------------  windows  ---------------------------------------
+
+reg query HKLM\Software\Microsoft\				see all keys under Microsoft (not recursive)
+reg query HKLM\Software\Microsoft\ /s				search recursively
+reg query "HKCU\SOFTWARE\Microsoft\Office\Excel"  /s /f LoadBehavior     search for LoadBehavior
+reg query HKLM\Software\Microsoft\  | find /c /v ""			get the count of all keys under Microsoft
+reg query HKLM\Software\Microsoft\ALG /s | findstr Ports		grep for Ports
+reg query HKLM\Software\Microsoft\ /s TestKey
+reg query HKLM\Software\Microsoft\ /s s | findstr TestAdd  2> nul       redirect stderr
+
+/v       Queries for a specific registry key values
+/f       Specifies the data or pattern to search for.
+/e       Specifies to return only exact matches.
+
+Root Key (aka  Hive)  HKEY_CLASSES_ROOT : file extension associations, program identifiers, Class ID (CLSID), and Interface ID (IID)
+
+https://learn.microsoft.com/en-us/sysinternals/downloads/
+
+whoami /groups				see your groups
+WHOAMI /USER /FO CSV			note /FO is format, i.e. CSV, LIST, TABLE
+WHOAMI /PRIV
+WHOAMI /ALL
+net localgroup				see all groups
+net localgroup Administrators		who belongs in Administrators
+
+win-X Event Viewer : Windows Log > Security   click Filter Log on the right
+4656 – A handle to a Registry key or Registry Value was requested.
+4657 – A registry value was modified.
+4660 – An registry key or value was deleted or removed.
+4663 – An attempt was made to access a Registry key or Registry Value
+
+
+win-R and regedit
+
+
+
+
+-----------------------------  python notes    ----------------------------------------
+
+print (type(a))		<class 'complex'>
+dir(random)		# see whats in random
+help(random.expovariate)
+
+x.__dir__()   		list of names in the current local scope OR attributes of a method
+x.__str__() 		displays data in a single string representation
+x.__module__		gives the module your object belongs to
+sympy.Eq.__name__
+sympy.Eq.__doc__
+sympy.Eq.__str__    
+sympy.Eq.__module__    
+modsim.__file__      # see the location of
+
+
+DataFrame		pandas
+			df.dtypes		# see the data types
+			df.describe()		# summary stats, IQR, mean
+			list(df.columns)
+			pd.DataFrame.info(df)
+			df.columns=[‘census’,’un’,’clark’]	# rename the columns
+			df_5YR.info()
+			len(df_5YR)
+			df_5YR.shape
+			df_5YR.size
+    
+
+
+
+def get_size(obj, seen=None):
+    """Recursively finds size of objects"""
+    size = sys.getsizeof(obj)
+#    breakpoint()
+    if seen is None:
+        seen = set()
+    obj_id = id(obj)
+    if obj_id in seen:
+        return 0
+    # Important mark as seen *before* entering recursion to gracefully handle
+    # self-referential objects
+    seen.add(obj_id)
+    if isinstance(obj, dict):
+        size += sum([get_size(v, seen) for v in obj.values()])
+        size += sum([get_size(k, seen) for k in obj.keys()])
+    elif hasattr(obj, '__dict__'):
+        size += get_size(obj.__dict__, seen)
+    elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes, bytearray)):
+        size += sum([get_size(i, seen) for i in obj])
+    return size
+
+-----------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+Public Function F5AlertOnChange(val)
+    F5AlertOnChange = Format(Now(), "h:n:s AM/PM")
+End Function
+
+
+
+
+
+'Workbook_Open has to be in the ThisWorkbook
+Private Sub Workbook_Open()
+
+   Debug.Print "In ThisWorkbook : Workbook_Open() "
+
+   Application.OnKey "{F9}", "f9handler"
+   Application.OnKey "{F5}", "printAddIns"
+   Application.OnKey "{F3}", "AllAddIns"
+   
+End Sub
+
+
+
+Sub WorksheetLoop()
+
+         Dim WS_Count As Integer
+         Dim i As Integer
+         Dim lastRow As Long
+         Dim ws1 As Worksheet, ws2 As Worksheet
+        
+         WS_Count = ActiveWorkbook.Worksheets.Count
+         Set ws1 = ThisWorkbook.Sheets("Sheet1")
+         lastRow = 6
+         
+         
+        
+         ' Begin the loop.
+         For i = 2 To WS_Count
+
+            ' Insert your code here.
+            ' The following line shows how to reference a sheet within
+            ' the loop by displaying the worksheet name in a dialog box.
+            MsgBox ActiveWorkbook.Worksheets(i).Name
+            
+            Set ws2 = ActiveWorkbook.Worksheets(i)
+            
+            ws2.Rows(8).EntireRow.Copy ws1.Range("A" & lastRow)
+            lastRow = lastRow + 1
+           
+         Next i
+
+End Sub
+
+
+
+Sub SayHello()
+
+ActiveWorkbook.Names.Add Name:="Mets_Ari", RefersTo:="=Mets!$A$8:$D$10"
+Range("A8:D10").Name = "Another_Mets_Ari"
+
+Names.Add Name:="TotalRuns", RefersTo:="=SUM(Mets!$D$2:$D$101)"
+Names("Mets_Ari").Delete      ' delete it
+
+
+
+End Sub
+
+Sub more_code()
+'Range("A1")                results in a runtime error
+
+' x = Range("A1").Select
+' x = Selection.End(xlDown).Select
+' Debug.Print x               ' prints True
+' Debug.Print VarType(x)      ' 11 or vbBoolean
+
+
+
+' example.Select
+Debug.Print Cells(3, 1).Value
+
+
+
+End Sub
+
+
+
+
+
+
+Do a quick search for a value
+
+= .Find(What:="0"   looks in the range where the value is 0,  if no value is 0, then Empty is returned
+
+Sub FindZeros()
+With Range("B1:B16")
+    Set Rng = .Find(What:="0", LookAt:=xlWhole, LookIn:=xlValues)        -- 0
+    If Not Rng Is Nothing Then
+        firstaddress = Rng.Address       -- $B$3
+        Do
+            Rng.Offset(, 1).Value = "LOW"
+            Set Rng = .FindNext(Rng)           -- .36751
+        Loop While Not Rng Is Nothing And Rng.Address <> firstaddress
+    End If
+End With
+End Sub
+
+Delete row if column 1 is blank
+
+Sub DeleteBlankRows()
+
+lastrow = Cells(Rows.Count, 1).End(xlUp).Row
+Dim ent_row As Range
+
+For i = 1 To lastrow
+    If IsEmpty(Cells(i, 1)) Then
+        Set ent_row = Cells(i, 1).EntireRow
+        Cells(i, 1).Resize(1, 4).Interior.ColorIndex = 2
+        ent_row.Delete
+    End If
+Next i
+End Sub
+
+
+
+Delete row if entire row is blank
+
+Sub DeleteBlankRows()
+
+lastrow = Cells(Rows.Count, 1).End(xlUp).Row
+Dim ent_row As Range
+
+For i = 1 To lastrow       ' 1 looks like l, this is ONE not an L
+    Set ent_row = Cells(i, 1).EntireRow
+    If Application.WorksheetFunction.CountA(ent_row) = 0 Then
+        ent_row.Delete
+    End If
+Next i
+End Sub
+
+
+Basic for loop
+
+    For i = 1 To 10
+        Cells(i, i).Value = i
+    Next i
+
+
+
+Heres a loop that colors columns 1 through 8 green, whenever the value in column 6 is greater than 0
+
+    FinalRow = Cells(Rows.Count, 1).End(xlUp).Row
+    For i = 2 To FinalRow
+        If Cells(i, 6).Value > 0 Then
+            Cells(i, 8).Value = "Service Revenue"
+            Cells(i, 1).Resize(1, 8).Interior.ColorIndex = 4
+        End If
+    Next i
+
+
+To disable right click
+
+Private Sub Worksheet_BeforeRightClick(ByVal Target As Range, Cancel As Boolean)
+    Cancel = True
+End Sub
+
+
+
+To trap a calculate. Note if you are on sheet 9, and hit CTL-F9, then active sheet is sheet 3. Hit CTL-ALT-F9 then active sheet is sheet 9.
+
+Private Sub Worksheet_Calculate()
+If ActiveSheet.CodeName = "Sheet9" Then
+
+End If
+End Sub
+
+F9: Calculates all worksheets in all open workbooks. Shift+F9: Calculates the active worksheet. Ctrl+Alt+F9: Calculates all worksheets in all open workbooks, regardless of whether they have changed since the last calculation
+
+
+Filter by 2 values
+
+
+Sub SelectTwoCustomers()
+    Worksheets("NewFilter").Select
+    Range("A1:A1").AutoFilter Field:=4, _
+        Criteria1:="Amazing Shoe Company",         Operator:=xlOr,  Criteria2:="Mouthwatering Inc."
+End Sub
+
+
+Filter 3 values
+
+Sub SelectThreeCustomers()
+    Worksheets("NewFilter").Select
+    Range("A1:A1").AutoFilter Field:=4, _
+        Criteria1:=Array("Tasty Yogurt Corporation", "Cool Saddle Traders", "Agile Aquarium Inc."), _
+        Operator:=xlFilterValues
+End Sub
+
+Filter the highest 3 values in column 6
+
+Sub Top6Filter()
+    Worksheets("NewFilter").Select
+    Range("A1:A1").AutoFilter Field:=6, _
+        Criteria1:="3", _
+        Operator:=xlTop10Items
+End Sub
+
+
+Filter by substring
+
+Sub FilterSearchBox()
+    Worksheets("NewFilter").Select
+    Range("A1:A1").AutoFilter Field:=4, _
+        Criteria1:="*at*"
+End Sub
+
+
+Get unique values in column C, put in “Customers” worksheet
+
+Sub UniqueCustInPlace()
+    FinalRow = Cells(Rows.Count, 4).End(xlUp).Row
+    
+    Range("C1").Resize(FinalRow, 1).AdvancedFilter       Action:=xlFilterInPlace,      Unique:=True
+        
+    Range("C1").Resize(FinalRow, 2).Copy      Destination:=Worksheets("Customers").Range("A1")
+    
+    ActiveSheet.ShowAllData
+    
+End Sub
+
+
+Read csv file in one big gulp
+
+Sub LoadLinesFromCSV()
+Dim sht             As Worksheet
+Dim strtxt          As String
+Dim textArray()     As String
+
+' Add new sheet for output
+Set sht = Sheets.Add
+
+' open the csv file
+With CreateObject("Scripting.FileSystemObject") _
+    .GetFile("c:\temp\sales.csv").OpenAsTextStream(1)
+    'read the contents into a variable
+    strtxt = .ReadAll
+    ' close it!
+    .Close
+End With
+
+'split the text into an array using carriage return and line feed
+'separator
+textArray = VBA.Split(strtxt, vbCrLf)
+
+sht.Range("A1").Resize(UBound(textArray) + 1).Value = _
+Application.Transpose(textArray)
+End Sub
+
+
+Open text file, fixed width (easier to code this by recording a macro)
+
+The second value in each Array is the XlColumnDataType, 1=xlGeneralFormat, 2=xlTextFormat
+Sub OpenText()
+    ChDir ThisWorkbook.Path
+    Workbooks.OpenText Filename:="sales.prn", Origin:=437, StartRow _
+        :=1, DataType:=xlFixedWidth, FieldInfo:=Array(Array(0, 2), Array(8, 1), Array( _
+        17, 3), Array(25, 1), Array(36, 1), Array(46, 1), Array(56, 9), Array(61, 9))
+End Sub
+
+Read text file process line by line
+
+Sub ImportAll()
+    ChDir ThisWorkbook.Path
+    ThisFile = "inventory.txt"
+    ' Put a small inventory file out there
+    WriteInventory 100
+    Worksheets("Data").Cells.Clear
+    
+    Open ThisFile For Input As #1
+    Ctr = 0
+    Do
+        Line Input #1, Data
+        Ctr = Ctr + 1
+        Worksheets("Data").Cells(Ctr, 1).Value = Data
+    Loop While EOF(1) = False
+    Close #1
+    Worksheets("Data").Select
+End Sub
+
+
+Combine all xls files in a directory into one xls file
+
+Sub CombineWorkbooks()
+Dim CurFile As String, DirLoc As String
+Dim DestWB As Workbook
+Dim ws As Object 'allows for different sheet types
+
+DirLoc = ThisWorkbook.Path & "\tst\" 'location of files to combine
+CurFile = Dir(DirLoc & "*.xls*")
+
+Application.ScreenUpdating = False
+Application.EnableEvents = False
+
+Set DestWB = Workbooks.Add(xlWorksheet)
+
+Do While CurFile <> vbNullString
+   Dim OrigWB As Workbook
+   Set OrigWB = Workbooks.Open(Filename:=DirLoc & CurFile,    ReadOnly:=True)
+   
+   'Limits to valid sheet names and removes ".xls*"
+   CurFile = Left(Left(CurFile, Len(CurFile) - 5), 29)
+   
+   For Each ws In OrigWB.Sheets
+      ws.Copy After:=DestWB.Sheets(DestWB.Sheets.Count)
+   
+      If OrigWB.Sheets.Count > 1 Then
+          DestWB.Sheets(DestWB.Sheets.Count).Name = CurFile & ws.Index
+      Else
+          DestWB.Sheets(DestWB.Sheets.Count).Name = CurFile
+      End If
+   Next
+   
+   OrigWB.Close SaveChanges:=False
+   CurFile = Dir
+Loop
+
+Application.DisplayAlerts = False
+DestWB.Sheets(1).Delete
+Application.DisplayAlerts = True
+
+Application.ScreenUpdating = True
+Application.EnableEvents = True
+
+Set DestWB = Nothing
+End Sub
+
+
+Function to return user name
+
+Private Declare PtrSafe Function WNetGetUser Lib "mpr.dll" Alias "WNetGetUserA" _
+    (ByVal lpName As String, ByVal lpUserName As String, _
+    lpnLength As Long) As Long
+Private Const NO_ERROR = 0
+Private Const ERROR_NOT_CONNECTED = 2250&
+Private Const ERROR_MORE_DATA = 234
+Private Const ERROR_NO_NETWORK = 1222&
+Private Const ERROR_EXTENDED_ERROR = 1208&
+Private Const ERROR_NO_NET_OR_BAD_PATH = 1203&
+
+Function WinUsername() As String
+'variables
+Dim strBuf As String, lngUser As Long, strUn As String
+'clear buffer for user name from api func
+strBuf = Space$(255)
+lngUser = WNetGetUser("", strBuf, 255)
+'if no error from function call
+If lngUser = NO_ERROR Then
+    'clear out blank space in strBuf and assign val to function
+    strUn = Left(strBuf, InStr(strBuf, vbNullChar) - 1)
+    WinUsername = strUn
+Else
+    WinUsername = "Error :" & lngUser
+End If
+End Function
+
+
+
+Check if user has admin rights
+
+Private Declare PtrSafe Function GetUserName Lib "advapi32.dll" _
+    Alias "GetUserNameA" (ByVal lpBuffer As String, nSize As Long) _
+    As LongPtr
+
+
+Private Function UserName() As String
+Dim sName As String * 256
+Dim cChars As Long
+
+cChars = 256
+If GetUserName(sName, cChars) Then
+    UserName = Left$(sName, cChars - 1)
+End If
+End Function
+
+Sub ProgramRights()
+Dim NameofUser As String
+
+NameofUser = UserName
+Select Case NameofUser
+    Case Is = "Administrator"
+        MsgBox "You have full rights to this computer"
+    Case Else
+        MsgBox "UserName: " & NameofUser & Chr(10) & "You have limited rights to this computer"
+End Select
+End Sub
+
+
+Check if user has admin rights 2
+
+Private Declare PtrSafe Function WNetGetUser Lib "mpr.dll" Alias "WNetGetUserA" _
+    (ByVal lpName As String, ByVal lpUserName As String, _
+    lpnLength As Long) As Long
+Private Const NO_ERROR = 0
+Private Const ERROR_NOT_CONNECTED = 2250&
+Private Const ERROR_MORE_DATA = 234
+Private Const ERROR_NO_NETWORK = 1222&
+Private Const ERROR_EXTENDED_ERROR = 1208&
+Private Const ERROR_NO_NET_OR_BAD_PATH = 1203&
+
+Function WinUsername() As String
+'variables
+Dim strBuf As String, lngUser As Long, strUn As String
+strBuf = Space$(255)				'clear buffer for user name from api func
+lngUser = WNetGetUser("", strBuf, 255)
+If lngUser = NO_ERROR Then
+    strUn = Left(strBuf, InStr(strBuf, vbNullChar) - 1)	    'clear spaces and assign val to function
+    WinUsername = strUn
+Else
+    'error,give up
+    WinUsername = "Error :" & lngUser
+End If
+End Function
+
+Sub CheckUserRights()
+'see Module2 for the API calls and the WinUserName function
+Dim UserName As String
+UserName = WinUsername
+Select Case UserName
+    Case "Administrator"
+        MsgBox "Full Rights"
+    Case "Guest"
+        MsgBox "You cannot make changes"
+    Case Else
+        MsgBox "Limited Rights"
+End Select
+End Sub
+
+
+
+Export data to word
+
+Sub Export_Data_Word_Table() 
+Dim wdApp As Word.Application
+Dim wdDoc As Word.Document
+Dim wdCell As Word.Cell
+Dim wbBook As Workbook
+Dim wsSheet As Worksheet
+Dim rnData As Range
+Dim vaData As Variant
+
+Set wbBook = ThisWorkbook
+Set wsSheet = wbBook.Worksheets("ExportWord")
+
+With wsSheet
+    Set rnData = .Range("A1:A10")
+End With
+
+vaData = rnData.Value		'Add the values in the range to a one-dimensional variant-array.
+
+'Here we instantiate the new object.
+Set wdApp = New Word.Application
+'Here the target document reside in the same folder as the workbook.
+Set wdDoc = wdApp.Documents.Open(ThisWorkbook.Path & "\Test.docx")
+
+'Import data to the first table and in the first column.
+For Each wdCell In wdDoc.Tables(1).Columns(1).Cells
+    i = i + 1
+    wdCell.Range.Text = vaData(i, 1)
+Next wdCell
+
+'Save and close the document.
+With wdDoc
+    .Save
+    .Close
+End With
+
+wdApp.Quit			'Close the hidden instance of MS Word.
+Set wdDoc = Nothing		'Release the external variables from the memory
+Set wdApp = Nothing
+
+MsgBox "The data has been transfered to Test.docx.", vbInformation
+
+End Sub
+
+Trap Function Keys
+
+
+Private Sub Workbook_Activate()
+   Application.OnKey "{F9}", "f9handler"
+   Application.OnKey "{F5}", "printAddIns"
+   Application.OnKey "^a", "Procedure"               ‘ CTL-a
+   Application.OnKey "+^{RIGHT}", "Procedure"       ‘ SHIFT+CTRL+RIGHT
+   Application.OnKey "^{+}", "Procedure"            ‘ CTL-Plus
+   Application.OnKey "%{A}", "Procedure"            ‘ ALT-A
+End Sub
+
+
+F9 Handler
+
+
+Private Sub f9handler()
+
+If Range("AutoCalc") = True Then
+    Application.Calculation = xlAutomatic
+ Else
+    Application.Calculation = xlManual
+ End If
+  Range("UserName").Value = VBA.Environ("USERNAME")
+  Application.Calculate
+End Sub
+
+
+
+Print Registered dlls
+
+Private Function listXLLs() As Collection
+  Dim list As New Collection
+  Dim i As Integer
+  i = 3
+  
+  On Error Resume Next      'ignore errors
+  Dim funcInfo As Variant
+  For Each funcInfo In ApplicationRegisteredFunctions
+     If Right(funcInfo, 4) Like ".xll" Then list.Add funcInfo, funcInfo
+     Cells(i, 8).Value = funcInfo
+     i = i + 1
+  Next
+  Set listXLLs = list
+End Function
+
+Private Sub printAddIns()
+  Dim xllPath As Variant
+  Dim i As Integer
+  i = 3
+  Cells(4, 2).Value = "Running !"
+  
+ For Each xllPath In listXLLs()
+    Cells(i, 5).Value = funcInfo
+    MsgBox (i)
+    i = i + 1
+ Next
+End Sub
+
+Registering a dll is done through regsvr32 but you can do it in VBA with
+ShellExecute 0, "RunAs", "cmd", "/c regsvr32 /u " & """" & FilePath & """", "C:", 0
+
+
+File name from Path
+
+Private Function baseName(ByVal fileSpec As String) As String
+   Const seperator As String = "\"
+   Dim iPos As Integer
+
+   iPos = InStr(fileSpec, seperator)
+   Do While iPos <> 0
+     fileSpec = Right(fileSpec, Len(fileSpec) - iPos)
+     iPos = InStr(fileSpec, seperator)
+  Loop
+
+   baseName = fileSpec
+End Function
+
+
+
+
+
+
+
+a Function returns a value, a Sub does stuff directly on the sheet or to the variables
+
+
+Do While
+Loop
+
+
+OnError GoTo ErrorHandler
+
+Dim
+MsgBox
+Set x=0
+
+Application.OnKey "^+" MyFunc   'call MyFunc when user hits control plus
+Application.RegisterXLL(pathofxll)
+Application.version
+Application.CalculateFull
+Application.Run "tina.xla!UpdateThis"
+
+Private YC As Range	' a Range is a range of cells usually with a name(label)
+
+Set YC = Range("YC")
+YC.Cells(row,col).Value=0
+
+Private Sub CommandButton_Click()
+
+Sub Auto_Open()
+	Application.Calculation = xlManual
+
+Private Sub SetDate(whSht As Worksheet)
+
+if whSht.range("$A$1").Value="" Then
+	whSht.range("$A$1").Value=Date
+
+End Sub
+
+Private Function
+End Function	
+
+
+Dim loader as Object: Set loader=CreateObject("CS ")
+	loader.loadAddIns
+
+
+
+gmag usd curve sheet
+	under Modules
+		Auto_Open()
+			autoloads a bunch of add ins
+
+Private Sub F9handler()
+	updateCurrentDate
+	Application.Calculate
+End Sub
+
+Private Sub Workbook_Activate()
+    Application.OnKey "{F9}", "Fill_it"
+ End Sub
+
+
+pdgList=Array("dmcf","chimp")
+
+
+
+connect to a web service
+
+Dim objRequest As Object
+
+UserName = Enviorn("USERNAME")
+
+today = Format(Now(),"yyyymmdd")
+
+dataProviderAPIHost = "usw....."
+
+Set objRequest = CreateObject("MSXML2.XMLHTTP")
+
+strURL = "http://dataProviderAPHost" & domain:port /api/blahblahblah"
+
+With objRequest
+	.Open "POST", strURL, blnAsync
+
+	.SetRequestHeader "Content-Type", "application/json"
+	.Send(strJsonRequest)
+
+
+
+	' spin wheels while waiting for a response
+While objRequest.read.state<>4
+	DoEvents
+Wend
+
+
+strResponse = .ResponseText
+
+Debug.Print strResponse
+
+
+
+--------------------------------------------------------------
+
+
+send an email
+
+Set oEmail = CreateObject("CDO.Message")
+
+oEmail.From =
+oEmail.To =
+oEmail.Subject =
+oEmail.TextBody =
+
+
+oEmail.Configuration.Fields.Item("http://schemas.microsoft.com/cdo/configuration/sendusing") = 2
+
+oEmail.Configuration.Fields.Item("http://schemas.microsoft.com/cdo/configuration/smtpserver") = .....
+
+oEmail.Configuration.Fields.Item("http://schemas.microsoft.com/cdo/configuration/authenticate") = 1
+
+oEmail.Send
+
+Set oEmail = Nothing
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
