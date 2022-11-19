@@ -1,0 +1,446 @@
+
+findstr /s /I "html" *ipynb 		to search inside files
+where /r .  *ipynb			to search file names
+C:\Final\work\search_since.pl		search files modified since
+
+type *xml > all.txt			to cat all text files to one
+to extract python code only from jupyter notebooks
+	jupyter nbconvert --to script *.ipynb
+	type *.py > all.txt 
+	findstr /V "^#" all.txt > rall.txt
+
+
+
+
+
+
+
+
+
+os.getcwd()
+os.chdir(r"C:\Users\arono\source\python")
+
+
+
+del my_var			# remove my_var from environment
+
+file IO
+
+
+f = open("C:\\Users\\arono\\idle_env.txt", "w")
+f.write("__import__")
+f.close()
+
+
+thefile="C:\\Users\\arono\\Documents\\R\curves.csv"
+with open(thefile) as csv_file:
+    csv_reader = csv.reader(thefile, delimiter=',')
+    
+for row in csv_reader:
+        if ((line_count > 0 ) and int(row[1] < 379 )):
+            cterm=int(row[1])
+
+
+
+
+
+data types
+
+
+
+Dictionary		 key-value pairs, a.k.a associative array or hash
+			curly {} brackets define a dictionary 
+			colon : defines the key:value
+			methods include add, update, delete, search, count
+
+Tuple			parenthesis () define a tuple
+			"sequences of object references"
+			accessed by index like an array of pointers pointing to different data types
+			immutable
+
+
+List			square [] brackets define a list
+			a list is a mutable tuple
+
+ndarray			numpy
+			s.ndim, s.shape, s.size, s.dtype       to see the dimensions, shape,size, data type
+
+Series			pandas, similar to numpy.ndarray
+
+
+type()			will tell you the data type, or a class name
+
+a = 1+ 3j
+print (type(a))		<class 'complex'>
+dir(random)		# see whats in random
+help(random.expovariate)
+
+x.__dir__()   		list of names in the current local scope OR attributes of a method
+x.__str__() 		displays data in a single string representation
+x.__module__		gives the module your object belongs to
+sympy.Eq.__name__
+sympy.Eq.__doc__
+sympy.Eq.__str__    
+sympy.Eq.__module__        
+help(sympy.Eq)
+
+one dimensional ndarray     		array([1950, 1951])
+two                                          		array([ [1950], [1951]])
+
+
+
+lambda			expressions are functions that may fit into syntax that functions do not
+
+lambda x: x**2 * np.sin(2*x) * np.exp(-x)
+same as
+def f(x):
+    return x**2 * np.sin(2*x) * np.exp(-x)
+
+
+dataframes
+
+Series and DataFrames are mostly the same but they have differences.
+they both have dtypes, series does not have info() which makes it hard to see the index
+fi_series.dtypes # just gives you the type of the value fi_df.info() # ok
+
+
+			df.dtypes		# see the data types
+			df.describe()		# summary stats, IQR, mean
+			list(df.columns)
+			pd.DataFrame.info(df)
+			df.columns=[‘census’,’un’,’clark’]	# rename the columns
+df_5YR.info()
+len(df_5YR)
+df_5YR.shape
+df_5YR.size
+
+
+quick way to create :
+orb_stat_df = pd.DataFrame([[orb_mean, orb_stddev, earth_z_score]], columns = ['Mean', 'Std Dev','Earth Z Score'])
+
+with data…
+ydf = pd.DataFrame([1965,1966,1967,1968,1969,1970,1971,1972,1973,1974,1975,1976,1977],columns =['Year'])
+
+self.data_frame=pd.DataFrame()						# no columns no rows
+df = pd.DataFrame(columns = ['Date', 'Rate5YR', 'Rate10YR', 'Rate30YR'])          #   columns but no rows
+df = df.append({'Date' : d_date, 'avg' : d_avg},ignore_index = True)                     # add a row
+df.loc[len(df)] = [16, 'yahoo']
+
+4 ways to iterate:
+for ind in df.index:
+     print(df['Name'][ind], df['Stream'][ind])
+for i in range(len(df)) :
+  print(df.loc[i, "Name"], df.loc[i, "Age"])
+for i in range(len(df)) :
+  print(df.iloc[i, 0], df.iloc[i, 2])
+for index, row in df.iterrows():
+    print (row["Name"], row["Age"])
+
+
+
+loc selects rows and columns with specific labels. iloc selects rows and columns at specific integer positions
+
+Retrieving ONE value
+df[5][2]
+df[filter]
+df.loc['row_index_key', 'column_index_key']
+df.iloc[integer,integer]
+df.at['row_index_key', 'column_index_key']
+df.query()
+df.index.get_level_values('asset_class')
+
+difference between at() and loc() is at() is designed to find a single value,  whereas loc() can handle broad queries...
+       df.loc[0:4, ['points', 'assists']]              # return 2 columns from the first 4 rows
+       df.loc[2:,['a_str']]         # returns a data frame
+       df.loc[2,'a_str']      # returns native value
+       df.at[1,'a_str']       # returns native value
+       df.at[1,1]='yinyang'          # this creates a new column
+       df.at[1,'a_str']='yingyang'   # updates the a_str column
+       df.iloc[2,1]              # yahoo
+Strangely if you index a dataframe directly, its column first, then row.
+	df['a_str'][1]        # yinyang
+if you need to use variables in the index
+r=1
+c='a_str'
+df[c][r]
+
+for c in df.columns:
+    for r in df.index.values:
+        print(df[c][r], end= ' ')
+
+Retrieving MANY values
+Here is an example of using a filter (mask) and querying a dataframe with a datetime index.
+        from datetime import datetime
+
+        start = datetime.strptime("1990-01-01","%Y-%m-%d")
+        end = datetime.strptime("2000-01-01","%Y-%m-%d")
+        mask = (oil_cpi_df['date']  > start) & (oil_cpi_df['date']  <= end)
+        the_nineties = oil_cpi_df.loc[mask]
+
+If you want to plot based on the index...
+        ax.plot_date(seven_years_df.index,seven_years_df['KF_mean'].values , '-' )
+
+To isolate records based on the index
+        mask = (seven_years_df.index > '2007-09-01') 
+        one_month_df=seven_years_df.loc[mask]
+
+Here is an example of selecting from a multi index
+
+# select all "2022-08-31"
+mval_ac_df[mval_ac_df.index.get_level_values('date') == '2022-08-31']
+
+# select all "Real Estate"
+mval_ac_df[mval_ac_df.index.get_level_values('asset_class') == 'Real Estate']
+
+# select only "2022-08-31" and  "Real Estate"
+mval_ac_df[(mval_ac_df.index.get_level_values('date') == '2022-08-31') & (mval_ac_df.index.get_level_values('asset_class') == 'Real Estate')]
+
+MANIPULATING THE INDEX
+resetting an index automatically makes it a columns to replace the index with a column just do 
+      portfolio_df = portfolio_df.set_index(portfolio_df.Ticker)
+
+to drop an index (resetting it to 0,1,2 etc..) and NOT move it to a column 
+portfolio_df.reset_index(drop=True, inplace=True)
+
+df = df.set_index(pd.Index([43,22,8]))
+df.set_index(pd.Index([4,7,2]), inplace=True)   # To set the index without the "df = ", use in_place
+df.index.name='MyIndex'
+df.set_index(pd.Index(['HoHo', 'HaHa','HeeHee']), inplace=True, append=True) # To not replace the existing index, use append
+set the index to a range of dates...
+ydf = pd.DataFrame([1965,1966,1967,1968,1969,1970,1971,1972,1973,1974,1975,1976],columns =['Year'])
+mask = (ydf['Year']  > 1967) & (ydf['Year']  < 1974)
+ydf = ydf.loc[mask]
+dates=pd.date_range(datetime(1968,1,1),datetime(1973,1,1), freq='YS').tolist()
+ydf.index=dates
+
+use df.info() or df.dtypes for help
+pd.MultiIndex.from_frame(df)    # multiple indexes are a  pain
+df.index.droplevel()        # use drop level to get rid of an row index
+df.columns = df.columns.droplevel(1)   # drop the column index
+
+
+
+ratings_df=ratings_df.dropna(subset=['rating'])					# remove null ratings
+movies_df.columns = ['id', 'name', 'imdb_rating', 'lead_actor']			# rename columns
+df = df.rename(columns={'Effective Date': 'Date', 'SOFR Index': 'SOFRIndex'})	# rename 2 columns
+people_df['name'] = people_df['name'].str.strip()				# remove the carriage returns
+exo_days_df=exo_days_df[(exo_days_df["planet"]!='COCONUTS-2 b')]		# remove 1 record
+
+merged_df = pd.merge(people_df,merged_df, left_on=['id'],right_on=['people_id'])  	# join 2 df’s
+merged_df = merged_df[["name_x", "name_y","imdb_rating", "rating"]]			# isolate 4 columns
+
+agg_func_count = {								# summarize
+        'rating': ['count', 'mean'],
+        'imdb_rating':['first']
+        }
+answer_df = merged_df.groupby(['Movie']).agg(agg_func_count)
+answer_df.columns = ['n_ratings', 'avg rating', 'imdb rating']
+
+
+
+packages
+
+
+
+# 2 ways to save off all members of a package
+saveme=inspect.getmembers(sympy)
+saveme=dir(sympy)
+
+with open(r'C:\Users\arono\source\python\Python\getmembers.txt', 'w') as fp:
+    fp.write("\n".join(str(item) for item in saveme))
+
+
+	xlabel('Amount')
+
+matplotlib is a package			pyplot is a module		xlabel(),plot(),show() are functions
+
+dir()                # see all variables/functions in your session
+dir(modsim)          # see all in modsim
+print(plt.text.__doc__)   called the docstring, its whats inside the 3 ticks, same results as   help(plt.text)
+modsim.__file__      # see the location of
+t.__module__               # numpy
+print(inspect.getsource(ModSimSeries))    		   # see source code, need to import inspect
+
+to install mysql for perl, I ran from the Conda cmd prompt
+	conda install -c anaconda mysql-connector-python
+
+python -m pip 			parameters include install, download, list, show, config
+
+!pip install modsimpy		you can run this in jupyter
+!pip install Quantlib		spyder too
+
+
+
+sys package/environment
+
+if (len(sys.argv) != 3):
+    print("Please pass one integer ")
+    sys.exit()
+
+k=int(sys.argv[1])
+sys.getwindowsversion()
+sys.path()
+if sys.platform.startswith('linux'):
+
+sys.path_importer_cache
+sys.modules
+sys.path
+sys.version
+
+for dist in __import__('pkg_resources').working_set:
+    print(dist.project_name.replace('Python', ''))
+
+py              from windows command line, brings you to a python interpreter
+		here you can type help on all kinds of stuff
+py -m pip show matplotlib
+py -m pip list -v
+
+extra env
+
+kwargs		key word args
+args is an array of void pointers
+kwargs is an array of void pointers to key, value pairs
+def myFun(**kwargs):
+    for key, value in kwargs.items():
+        print ("%s == %s" %(key, value))
+
+
+python -m		run a module as a script
+python -c		run a program
+python -d		debug
+python -V		print version same as --version
+
+to install mysql for perl, I ran from the Conda cmd prompt
+	conda install -c anaconda mysql-connector-python
+
+python environment management is quite murky
+sys.path_importer_cache 
+sys.path in your python script
+
+
+
+python -m pip list -v		is the best way to see packages
+
+matches the results of
+for dist in __import__('pkg_resources').working_set:
+    print(dist.project_name.replace('Python', ''))
+
+displays 244 packages
+
+
+for help on any of these....
+		python -m pip show Babel
+
+
+py -c "import sys; print(sys.path)"
+
+.pyd files are dll’s
+
+if __name__ = “__main__”
+	__name__ is set to __main__ for the file that is called directly, otherwise its set to the file naem
+	so this allows you to use your file as both an import and a main program
+
+
+
+numpy
+
+import numpy as np		gives mean, random, normal dist
+np.arange(0.0, 1.0, 0.01)
+np.random.rand
+np.random.normal
+np.random.choice(sales_target_values, num_reps, p=sales_target_prob)
+np.matrix([[1, 2], [3, 4]])
+np.asarray(b)
+np.linspace(0, 2, 100)
+np.sqrt(n)
+np.zeros(1000)
+
+
+
+
+
+
+
+
+xml
+
+import xml.etree.ElementTree as ET
+tree=ET.fromstring(xml_string)
+elem=tree.find(‘OnSide/agency’)
+print(elem.text)
+for s in tree.iterfind(‘.//settle_type’):		# this method handles multiple instances
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+regexes
+
+import re
+
+txt = "The rain in Spain"
+x = re.search("^The.*Spain$", txt)			true
+
+#Return a list containing every occurrence of "ai":
+txt = "The rain in Spain"
+x = re.findall("ai", txt)					[ ‘ai’,’ai’]
+
+#Check if "Portugal" is in the string:
+x = re.findall("Portugal", txt)				[]
+
+# return the position of the search
+x = re.search("\s", txt)					3
+print("The first white-space character is located in position:", x.start())
+x = re.search("Portugal", txt)				None
+
+x = re.split("\s", txt)					['The', 'rain', 'in', 'Spain']
+# substitute ( replace ) space with 9
+x = re.sub("\s", "9", txt)				The9rain9in9Spain
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+for p in sys.modules:
+
+
+Loops in Python
+linspace goes from 0 to 1  in 10 intervals
+# np.linspace(0,1,10)    #  0 ,  .11,  .22  .. 1
+
+# arange goes from 0 to 1
+# np.arange(0,1,.1)      #  0, 0.1 ... 0.9
+
+R has type factor used to represent categories, i.e. summer,spring.winter,fall 
+
+Python containers  
+# List          ordered and changeable. Allows duplicates           square brackets []
+# Tuple         ordered and unchangeable. Allows duplicates         parenthesis ()
+# Set           unordered and unindexed. No duplicates              curly brackets {}
+# Dictionary    unordered, changeable and indexed. No duplicates    curly brackets {} with key/value
+	# Data Frame is part of the Pandas package
+
+tuples are immutable objects and considered more efficient,  lists are mutable.
+type is determined explictly by the syntax
+player=thisdict["Nets"][2]
+
+Python argv is k=int(sys.argv[1])
