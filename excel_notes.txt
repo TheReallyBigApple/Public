@@ -1,0 +1,461 @@
+
+-----------------            TODO           ----------------------------------
+		study jpm vba
+		look at PCA	scikit or scipy or sklearn from sklearn.decomposition import PCA
+		look at LDU
+		back up computer
+
+
+
+
+
+https://www.contextures.com/
+
+Verizon : 340 Madison Avenue
+
+
+3 Documents 1) Excel 2) VBA 3) AddIns
+
+opening a workbook
+Workbooks.Open Filename:= _
+        "Y:\Nyk\Impact\Reports\Work_Area\CIE-EXTRACT.xls"
+
+or
+
+Set WBook = xl.Workbooks.Open(Trim(wScript.Arguments(0)))
+
+
+
+
+
+
+
+
+
+
+-----------------            STIR NOTES           ----------------------------------
+
+
+SOFR and SARON are secured
+SONIA,ESTR,TONA are unsecured
+OIS 			overnight index swaps are shorter term (a year)
+			And the floating rate resets daily to some O/N index EONIA/SONIA
+
+Par Swap 		a swap where fixed and floating legs have the same PV
+Par Swap Rate 		the fixed rate (or whatever makes the PVs equal)
+Swap Rate 		the fixed rate (same thing)
+
+Basis Swap 		2 floating rates, could be 1M+spread vs 3M
+Quanto Swap 		currency swap
+Credit Support Annex 	one of the 4 parts of the ISDA Master Agreement
+			governs collateral postings to mitigate counterparty risk
+
+Constant Maturity Swap floating rate is based off a ST bond, like a bill, each reset from a different bond
+			CMS rates are reset, but they might be reset to a recent fixed rate
+			The opposite side of a CMS leg could be fixed, floating or CMS
+
+Credit Value Adjustment	any adjustment to a derivative to account for credit risk
+
+NPV		sum of discounted CFs of the side I receive is PV1
+sum of discounted CFs of the side I pay is PV2
+NPV is PV1-PV2   ( i.e. receive-pay is my pnl )
+		Fundamental difference in repos is that the pvs occur at different times
+
+2 types of swaps  : FX and IR
+
+IR swaps tend to be between 5-10 years, but they can be as long as 50
+Currencies are USD, EUR, GBP, CHF, JPY, CAD
+Both are OTC (not on an exchange) usually between a dealer
+The fixed rate may be referred to as the swap rate and may be the average of implied spot rates.
+The floating rates may be thought of as series of IR futures.
+The floating rate may be thought of as funding to the fixed rate.
+The floating rate may be thought of as a repo rate on a bond borrowed at the fixed rate.
+
+
+Modified Following  (Business  Day)
+payments due on a  non-Business  Day will  be paid on next bus. date
+ unless it’s the next month,  in which  case its  prev  bus  date.
+
+
+
+Currencies
+
+HUF		Hungarian Forint
+ZAR		S.African Rand
+SEK		Sweedish Krona
+DKK		Danish Krona
+TRY		Turkish Lira
+PLN		Polish Zloty
+IDR		Indonesian Rupiah
+CLP		Chilean Peso
+NOK		Norwegian Krone
+RMB		Yuan is a unit of RMB
+CNH		is offshore version of RMB
+CNY		is onshore version of RMB
+More : AUD, CHF, CAD, HKD, MXN
+
+
+Credit Sensitive Rates
+	BSBY, 	CRITR, 	AXI
+SOFR lacks a credit element, as compared with LIBOR, which is based on 
+unsecured bank financings and therefore is sensitive to credit.
+BSBY - Bloomberg Short-Term Bank Yield Index, for example, mimics what banks charge each other for unsecured transactions
+
+
+
+There is no natural hedge between forward looking rates and backward looking rates
+
+
+Fallback Language
+contracts should state what to do if libor no longer exists
+waterfall is libor will be replaced the standard CSA (im not clear what that standard is
+
+Waterfall Payment Structures 
+usually is described for bond defaults, high teired creditors get paid off first, then second tiered, etc..
+
+ Credit Spread Adjustment 
+historical/5 year median spread between ibor/arr
+led by ISDA, not a mature product yet but the goal is to publish it as a standard fallback 
+BB may have something…
+https://assets.bbhub.io/professional/sites/10/IBOR-Fallbacks-LIBOR-Cessation_Announcement_20210305.pdf
+IHS Markit
+information provider 
+2016 merger of IHS Inc. and Markit Ltd. The original company founded in 1959
+
+
+
+
+
+CME
+SOFR Term Rates
+	forward looking rates
+	based off of SOFR futures and SOFR OIS
+	published at 6AM
+
+SOFR Futures
+	1 Month SOFR futures (SR1), pay $4164 for every 1BP movement. Same as GCF/FF futures
+	3 Month SOFR futures (SR3), pay $2500 for every 1BP movement. Same as Eurodollar futures.
+	3 Month SOFRs settle on the 3rd tuesday after the stated date.
+		the contract reference quarter however runs from the 3rd Wednesday of the contract month, .i.e. SR3M0 is effective from June 17, 2020 and ends on Sept 16, 2020
+
+In Arrears	
+“in arrears”  traditionally means payment is overdue
+Compounding in arrears is a methodology that compounds daily values of the overnight rate, throughout the relevant term period
+its a bit muddy. means rates are determined around settlement date, 
+could be simple or compounded in arrears
+
+
+
+Packs and Bundles
+
+Exist for Eurodollar and SOFR
+Color Scheme : White, Red, Green, Blue ending with Copper
+Bundles are a groups of 4,8,12, etc.. i.e. multiples of 4. Usually starting with the next.
+A Red bundle is the next 8 futures. A Green bundle is the next 12. 
+The price is quoted as a delta since yesterday in bps. “Average Price Change” in increments of 1/4  BP
+BPV is the basis point value. Since EDs pay $25 per BP, a Green bundle would have a BPV of $300 (12 X 25)
+For example if the next 4 contracts went up by 2 BPs and the next 4 by 3 BPs then the price of the Red Bundle that day would be +2.5 BPs
+
+
+
+
+	SONIA		Sterling O/N Index Average 		Pound/Sterling/GBP  all the same thing
+			 unsecured O/N only, does not relay on quotes, (transaction based), considered risk free 
+
+	SOFR		Secured O/N Rate	USD treasury repos
+
+	ESTR		O/N Unsecured deposits over 1MM
+
+	SARON		Swiss Average Rate Overnight
+
+
+
+
+Short Term Interest Rate Derivatives
+
+Interest Rate Futures include futures with underlyings that are bonds.
+Short Term Interest Rate Futures (STIRS) have underlying cash settlements base on rates.
+They are valued by the market participants attempt to guess the average rates during the contract reference period. As we progress towards the end of the reference term, the price approaches the actual known rates, and volatility decreases.
+The Jan-Dec letter is FGHJKMNQUVXZ
+STIRs exist for SOFR, SONIA, EONIA, EURODOLLAR, GCF REPO, et all
+STIR derivatives include futures, options, and swaps
+Different ticker conventions exist (Bloomber, Sungard, CME, Broadway)   SOFR3M is SFR on Bloomberg but SR3 elsewhere, SOFR1M is SER on Bloomberg, SR1 elsewhere
+STIRs are considered Money Market instruments although 1M FF contracts go out 3 years.  3M ED contracts go out 10 years.
+Expiration dates generally follow the International Monetary Market (IMM) dates of the third Wednesday of March, June, September, and December.
+
+
+Future	Pays Per BP	Last Trading Day	Maturity/Settlement
+ED 1M	2500	Monday before 3rd Wednesday	same
+ED 3M	2500	Monday before 3rd Wednesday	same
+SOFR 1M	4167	Bus.Date before 3rd Wednesday	Last Day of Month
+SOFR 3M	2500	Bus.Date before 3rd Wednesday	3 Months later
+GCF	4167	Last Day of Month	same
+Fed Funds	4167	Last Day of Month	same
+
+The 4167 and 2500  comes from having half the contract size divided by months, i.e.
+4167 = 50000/12
+2500=10000/4
+
+
+
+
+
+Future Pricing
+
+
+Quoted as 100-R where R is the compounded rate during the period. The price is often called an Index
+Note T-Bills are quoted 1-YTM
+GCF /FF/SOFR 1M futures pay $41.67 per BP  ( 50MM * .0001 * 30 / 360 )
+1M ED/3M ED/3M SOFR pay $25 (100MM *90/360 * .0001).
+
+
+
+Eurodollar Future
+
+Last Trading Day		The second London bank business day prior to the third Wednesday of the contract expiry month, at 11:00am London time.
+Contract Size			$2,500 * Rate Index   $25 = 100MM *90/360 * .0001
+Tick Size			One-quarter of one basis point (0.0025) or $6.25 per contract.
+Daily Settlement Price Quotation	One-quarter of one basis point (0.0025) or $6.25 per contract.
+Final Settlement Price Quotation	1/100 of one basis point (0.0001) or $0.25 per contract
+Floating Price		In respect of daily settlement, the Floating Price will be determined by ICE using price data from a number of sources including spot, forward and derivative markets for both physical and financial products
+Final Settlement		Expiring contracts are cash settled to 100 minus the ICE Benchmark Administration survey of 3-month U.S. Dollar LIBOR on the last trading day. Final settlement will be rounded to four decimal places, equal to 1/100 of one basis point, or $0.25 per contract.
+Minimum Price Fluctuation	0.0025 ($6.25)
+Final Payment Date	Final settlement occurs on the last trading day of the contract month.
+
+
+
+3M SOFR Future
+
+Trading Unit			Compounded daily SOFR interest during reference quarter
+Each BP = $25
+
+Last Trading Day		CME exchange Business Day preceding 3rd Wed of Delivery Month
+Delivery Month			3 months after the issue date
+
+Contract Size			$25 X BP ($2,500 X IMM Index point)
+$25 = 100MM *90/360 * .0001
+
+Delivery			price evaluated of realized values during contract reference Quarter
+
+Example			I buy 50 contracts today at 96.8225 ( predicting a rate of	3.1775 ). 
+I pay $242,046
+Come December the average SOFR rate is 3. The final price is 97
+Then I receive $242, 500.   I would lose $443.75  ( 17.75 * 25 )
+
+
+
+1M SOFR Future
+
+Trading Unit			Compounded daily SOFR interest during reference month
+Each BP = $41.67
+
+Contract Size			$41.67 per basis point per annum ($4,167 per IMM Index point)
+( 50MM * .0001 * 30 / 360 )
+Last Trading Day		last CME exchange Business Day of Delivery Month
+
+Contract Size			$41.67 X basis point  ($2,500 X IMM Index point)
+Price Increments	either ¼ bp or ½ bp, depending on the date
+
+
+Note tick value, BP, index, and increment all refer to the price units. Seems like increment emphasizes the minimum unit of precision.
+
+
+Fed Funds Future
+
+Trading Unit			Each BP = $41.67    Each index point=$4167
+
+Minimum Tick			½ BP
+
+Contract Notional		5MM
+
+
+
+
+
+
+-------------------------------------------------------------------------------------------------------------------------
+
+Principle Component Analysis
+	reduces data, maintains the patterns, determines Eigen Vectors
+	Eigen Vector - when multiplied to a matrix, that matrix retains its direction ( the EV equates to a scalar, a.k.a. Eigen Value )
+	The PCA process isolates “principal components”, ordering the eigen values by variability.
+
+
+
+-------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+vba to search for strings
+
+
+Sub TestFind()
+
+Dim ws_count As Integer, I As Integer
+Dim cur_sheet As Worksheet
+Dim search_string As String
+
+search_string = "88"
+
+
+
+ws_count = ActiveWorkbook.Worksheets.Count
+
+         ' Begin the loop.
+For I = 1 To ws_count
+
+
+
+Dim rg As Range, old_rg As Range, FindStr As String
+
+Set cur_sheet = ActiveWorkbook.Worksheets(I)
+
+
+Debug.Print "Processing " & cur_sheet.Name
+
+
+'Look for first instance of "‘Light & Heat"
+Set rg = Sheets(ActiveWorkbook.Worksheets(I).Name).UsedRange.Find(search_string)
+
+'If not found then exit
+If rg Is Nothing Then GoTo NextIteration
+
+'Make a copy of the range object
+Set old_rg = rg
+FindStr = FindStr & "|" & rg.Address
+
+
+    Do
+          ' searches value and formula
+        ' Set rg = Sheets(ActiveWorkbook.Worksheets(I).Name).UsedRange.Find(search_string, After:=Range(old_rg.Address))
+            ' searches just formula
+        ' Set rg = Sheets(ActiveWorkbook.Worksheets(I).Name).UsedRange.Find(search_string, After:=Range(old_rg.Address), LookIn:=xlFormulas)
+                  ' searches just formula
+        Set rg = Sheets(ActiveWorkbook.Worksheets(I).Name).UsedRange.Find(search_string, After:=Range(old_rg.Address), LookIn:=xlValues)
+  
+        '  Lookat:=xlPart)  to accept a partial match
+        ' Lookat:=xlWhole)  for a exact match
+        
+        'If the address has already been found then exit the do loop – this stops continuous looping
+        If InStr(FindStr, rg.Address) Then Exit Do
+        
+      
+        Debug.Print cur_sheet.Name & " , " & rg.Address & " , " & rg.Value & " , " & rg.Formula
+         
+          
+        'Add the latest address to the string of addresses
+        FindStr = FindStr & "|" & rg.Address
+    
+        'make a copy of the current range
+         Set old_rg = rg
+    Loop
+
+NextIteration:
+
+Next I
+
+
+
+End Sub
+
+
+
+
+--------------------------------------------------------------------------
+
+
+manage macros...
+
+Application.AutomationSecurity = msoAutomationSecurityByUI
+'This is the default behavior where each time it would ask me whether I want to enable or disable macros
+
+Application.AutomationSecurity = msoAutomationSecurityForceDisable
+'This would disable all macros in newly opened files
+
+Application.AutomationSecurity = msoAutomationSecurityLow
+'This would enable all macros in newly opened files
+
+Even after the code is run the settings will not revert back to the default behavior so you need to change it again. Thus for this question
+
+previousSecurity = Application.AutomationSecurity
+Application.AutomationSecurity = msoAutomationSecurityForceDisable
+' Your code
+Application.AutomationSecurity = previousSecurity
+
+
+
+
+Dim wb as Workbook
+Application.EnableEvents = False
+Set wb = workbooks.Open "YOURWORKBOOKPATH"
+Application.EnableEvents = True
+wb.Application.EnableEvents = False
+
+
+
+
+
+
+
+
+
+option explicit
+
+Const vbext_ct_ClassModule = 2
+Const vbext_ct_Document = 100
+Const vbext_ct_MSForm = 3
+Const vbext_ct_StdModule = 1
+
+Main
+
+Sub Main
+    Dim xl
+    Dim fs
+    Dim WBook
+    Dim VBComp
+    Dim Sfx
+    Dim ExportFolder
+
+    If Wscript.Arguments.Count <> 1 Then
+        MsgBox "As the only argument, give the FULL path to an XLS file to extract all the VBA from it."
+    Else
+
+        Set xl = CreateObject("Excel.Application")
+        Set fs = CreateObject("Scripting.FileSystemObject")
+
+        xl.Visible = true
+
+        Set WBook = xl.Workbooks.Open(Trim(wScript.Arguments(0)))
+
+        ExportFolder = WBook.Path & "\" & fs.GetBaseName(WBook.Name)
+
+        fs.CreateFolder(ExportFolder)
+
+        For Each VBComp In WBook.VBProject.VBComponents
+            Select Case VBComp.Type
+                Case vbext_ct_ClassModule, vbext_ct_Document
+                    Sfx = ".cls"
+                Case vbext_ct_MSForm
+                    Sfx = ".frm"
+                Case vbext_ct_StdModule
+                    Sfx = ".bas"
+                Case Else
+                    Sfx = ""
+            End Select
+            If Sfx <> "" Then
+                On Error Resume Next
+                Err.Clear
+                VBComp.Export ExportFolder & "\" & VBComp.Name & Sfx
+                If Err.Number <> 0 Then
+                    MsgBox "Failed to export " & ExportFolder & "\" & VBComp.Name & Sfx
+                End If
+                On Error Goto 0
+            End If
+        Next
+
+        xl.Quit
+    End If
+End Sub
