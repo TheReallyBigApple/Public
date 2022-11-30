@@ -1,0 +1,70 @@
+
+
+
+
+check your blackberry
+
+
+To prevent Microsoft from blocking macros in a workbook that’s not in a trusted location
+	Right Click on the File
+	Properties
+	Check off “Unblock”
+
+
+
+Parameters
+
+/r	to open a book as read only
+excel.exe /r "c:\My Folder\book1.xlsx"
+/p workbook path
+	specifies a folder as the active working folder (for example, the folder that is pointed to in the Save As dialog box).
+excel.exe /p "c:\My Folder"
+
+/s or /safemode
+	Forces Excel to bypass all files that are stored in startup directories, such as the default XLStart folder located in the directory where Excel or Microsoft Office is installed.
+
+/x  		Starts a new instance (a separate process) of Excel.
+		excel.exe /x "c:\My Folder\book1.xlsx"	
+
+
+
+
+
+https://learn.microsoft.com/en-us/deployoffice/security/internet-macros-blocked
+https://www.wallstreetmojo.com/add-ins-in-excel/
+
+
+
+
+' different ways to reference a Name
+' note MyName is defined in 2 worksheets, Data and Report
+'   its defined in worksheet scope in Report, but workbook scope in Data
+'   but note if Report is active, then Report scope supercedes that of Data
+
+Sub DifferentWays()
+
+Dim wsTarget As Worksheet
+Dim wbBook As Workbook
+
+Set wbBook = ThisWorkbook
+With wbBook
+    Set wsTarget = .Worksheets("Report")
+ 
+End With
+
+wsTarget.Activate
+
+
+
+Debug.Print Range("MyName")                       ' MyName_Report
+Debug.Print Sheet2.Range("MyName")                ' MyName_Data
+Debug.Print Worksheets("Data").Range("MyName")    ' MyName_Data
+Debug.Print [MyName]                              ' MyName_Report
+Debug.Print wsTarget.Range("MyName")              ' MyName_Report
+
+Worksheets("NewSheet").Activate
+Debug.Print Range("MyName")                       ' MyName_Data
+Debug.Print [MyName]                              ' MyName_Data
+    
+
+End Sub
