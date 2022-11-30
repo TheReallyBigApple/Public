@@ -68,3 +68,148 @@ Debug.Print [MyName]                              ' MyName_Data
     
 
 End Sub
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Private Sub f9handler()
+
+If Range("AutoCalc") = True Then
+    Application.Calculation = xlAutomatic
+ Else
+    Application.Calculation = xlManual
+ End If
+  Range("UserName").Value = VBA.Environ("USERNAME")
+  Application.Calculate
+End Sub
+
+
+
+
+Private Function listXLLs() As Collection
+  Dim list As New Collection
+  Dim i As Integer
+  i = 3
+  
+  On Error Resume Next      'ignore errors
+  Dim funcInfo As Variant
+  For Each funcInfo In ApplicationRegisteredFunctions
+     If Right(funcInfo, 4) Like ".xll" Then list.Add funcInfo, funcInfo
+     Cells(i, 8).Value = funcInfo
+     i = i + 1
+  Next
+  Set listXLLs = list
+End Function
+
+
+
+Private Sub printAddIns()
+  Dim xllPath As Variant
+  Dim i As Integer
+  i = 3
+  Cells(4, 2).Value = "Running !"
+  
+ For Each xllPath In listXLLs()
+    Cells(i, 5).Value = funcInfo
+    Debug.Print "In workbook activate"
+    i = i + 1
+ Next
+End Sub
+
+
+Public Sub AllAddins()
+'UpdatebyKutools20191031
+Dim xWSh As Worksheet
+Dim xWB As Workbook
+Dim xAddin As AddIn
+Dim xCOMAddin As COMAddIn
+Dim xFA, xFCA As Integer
+Dim xI As Integer
+Dim xStr As String
+ 
+On Error Resume Next
+Application.DisplayAlerts = False
+xStr = "Addins List"
+Set xWB = Application.ActiveWorkbook
+Set xWSh = xWB.Worksheets.Item(xStr)
+If Not xWSh Is Nothing Then
+    xWSh.Delete
+End If
+Set xWSh = xWB.Worksheets.Add
+xWSh.Name = xStr
+xWSh.Range("A1").Value = "Name"
+xWSh.Range("B1").Value = "FullName"
+xWSh.Range("C1").Value = "Installed"
+For xFA = 1 To Application.AddIns.Count
+    Set xAddin = Application.AddIns(xFA)
+    xI = xFA + 1
+    Range("A" & xI).Value = xAddin.Name
+    Range("B" & xI).Value = xAddin.FullName
+    Range("C" & xI).Value = xAddin.Installed
+Next xFA
+xFA = (xFA + 2)
+xWSh.Range("A" & xFA).Value = "Description"
+xWSh.Range("B" & xFA).Value = "progID"
+xWSh.Range("C" & xFA).Value = "Connect"
+For xFCA = 1 To Application.COMAddIns.Count
+    xI = xFCA + xFA
+    Set xCOMAddin = Application.COMAddIns(xFCA)
+    Range("A" & xI).Value = xCOMAddin.Description
+    Range("B" & xI).Value = xCOMAddin.progID
+    Range("C" & xI).Value = xCOMAddin.Connect
+Next xFCA
+Application.DisplayAlerts = True
+End Sub
+
+
+
+
+Private Function baseName(ByVal fileSpec As String) As String
+   Const seperator As String = "\"
+   Dim iPos As Integer
+
+   iPos = InStr(fileSpec, seperator)
+   Do While iPos <> 0
+     fileSpec = Right(fileSpec, Len(fileSpec) - iPos)
+     iPos = InStr(fileSpec, seperator)
+  Loop
+
+   baseName = fileSpec
+End Function
+
+
+
+
+'  worksheet specific subroutine
+Private Sub Worksheet_Change(ByVal Target As Range)
+    Dim KeyCells As Range
+
+    Set KeyCells = Range("A1:A1")
+
+    If Not Application.Intersect(KeyCells, Range(Target.Address)) _
+           Is Nothing Then
+           
+    For i = 1 To 100
+    If IsEmpty(Sheet6.Cells(i, 4)) Then
+        Sheet6.Cells(i, 4).Value = "A1 changed at " & Format(Now(), "h:n:s AM/PM")
+        i = 100
+    End If
+    Next i
+
+
+     
+End If
+End Sub
+
+
+
