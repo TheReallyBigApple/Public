@@ -1,72 +1,132 @@
 
 
+Sub TestFind()
 
+Dim ws_count As Integer, I As Integer
+Dim cur_sheet As Worksheet
+Dim search_string As String
 
-check your blackberry
-
-
-To prevent Microsoft from blocking macros in a workbook that’s not in a trusted location
-	Right Click on the File
-	Properties
-	Check off “Unblock”
-
-
-
-Parameters
-
-/r	to open a book as read only
-excel.exe /r "c:\My Folder\book1.xlsx"
-/p workbook path
-	specifies a folder as the active working folder (for example, the folder that is pointed to in the Save As dialog box).
-excel.exe /p "c:\My Folder"
-
-/s or /safemode
-	Forces Excel to bypass all files that are stored in startup directories, such as the default XLStart folder located in the directory where Excel or Microsoft Office is installed.
-
-/x  		Starts a new instance (a separate process) of Excel.
-		excel.exe /x "c:\My Folder\book1.xlsx"	
+search_string = "88"
 
 
 
+ws_count = ActiveWorkbook.Worksheets.Count
 
-
-https://learn.microsoft.com/en-us/deployoffice/security/internet-macros-blocked
-https://www.wallstreetmojo.com/add-ins-in-excel/
-
-
-
-
-' different ways to reference a Name
-' note MyName is defined in 2 worksheets, Data and Report
-'   its defined in worksheet scope in Report, but workbook scope in Data
-'   but note if Report is active, then Report scope supercedes that of Data
-
-Sub DifferentWays()
-
-Dim wsTarget As Worksheet
-Dim wbBook As Workbook
-
-Set wbBook = ThisWorkbook
-With wbBook
-    Set wsTarget = .Worksheets("Report")
- 
-End With
-
-wsTarget.Activate
+         ' Begin the loop.
+For I = 1 To ws_count
 
 
 
-Debug.Print Range("MyName")                       ' MyName_Report
-Debug.Print Sheet2.Range("MyName")                ' MyName_Data
-Debug.Print Worksheets("Data").Range("MyName")    ' MyName_Data
-Debug.Print [MyName]                              ' MyName_Report
-Debug.Print wsTarget.Range("MyName")              ' MyName_Report
+Dim rg As Range, old_rg As Range, FindStr As String
 
-Worksheets("NewSheet").Activate
-Debug.Print Range("MyName")                       ' MyName_Data
-Debug.Print [MyName]                              ' MyName_Data
+Set cur_sheet = ActiveWorkbook.Worksheets(I)
+
+
+Debug.Print "Processing " & cur_sheet.Name
+
+
+'Look for first instance of "‘Light & Heat"
+Set rg = Sheets(ActiveWorkbook.Worksheets(I).Name).UsedRange.Find(search_string)
+
+'If not found then exit
+If rg Is Nothing Then GoTo NextIteration
+
+'Make a copy of the range object
+Set old_rg = rg
+FindStr = FindStr & "|" & rg.Address
+
+
+    Do
+          ' searches value and formula
+        ' Set rg = Sheets(ActiveWorkbook.Worksheets(I).Name).UsedRange.Find(search_string, After:=Range(old_rg.Address))
+            ' searches just formula
+        ' Set rg = Sheets(ActiveWorkbook.Worksheets(I).Name).UsedRange.Find(search_string, After:=Range(old_rg.Address), LookIn:=xlFormulas)
+                  ' searches just formula
+        Set rg = Sheets(ActiveWorkbook.Worksheets(I).Name).UsedRange.Find(search_string, After:=Range(old_rg.Address), LookIn:=xlValues)
+  
+        '  Lookat:=xlPart)  to accept a partial match
+        ' Lookat:=xlWhole)  for a exact match
+        
+        'If the address has already been found then exit the do loop – this stops continuous looping
+        If InStr(FindStr, rg.Address) Then Exit Do
+        
+      
+        Debug.Print cur_sheet.Name & " , " & rg.Address & " , " & rg.Value & " , " & rg.Formula
+         
+          
+        'Add the latest address to the string of addresses
+        FindStr = FindStr & "|" & rg.Address
+    
+        'make a copy of the current range
+         Set old_rg = rg
+    Loop
+
+NextIteration:
+
+Next I
+
+
+
+End Sub
+
+
+
+
+
+Sub removeSomeFormulas()
+
+Dim ws_count As Integer, I As Integer
+Dim cur_sheet As Worksheet
+
+ws_count = ActiveWorkbook.Worksheets.Count
+
+         ' Begin the loop.
+For I = 1 To ws_count
+
+Set cur_sheet = ActiveWorkbook.Worksheets(I)
+Debug.Print "Processing " & cur_sheet.Name
+
+
+
+For Each c In cur_sheet.Range("J1:K5").Cells
+    If (c.Value <> c.Formula) Then
+        Debug.Print c.Address & " "; c.Value & " "; c.Formula
+        c.Formula = c.Value
+    End If
+Next c
+
+Next I
     
 
+
+End Sub
+
+
+
+Sub getLastRowAndColumn()
+
+    Dim last_row As Integer, last_col As Integer
+    Dim ws_count As Integer, I As Integer
+    Dim cur_sheet As Worksheet
+    
+    ws_count = ActiveWorkbook.Worksheets.Count
+
+         ' Begin the loop.
+    For I = 1 To ws_count
+
+    Set cur_sheet = ActiveWorkbook.Worksheets(I)
+    Debug.Print "Processing " & cur_sheet.Name
+
+    
+    ' last_row = cur_sheet.Cells(Rows.Count, 1).End(xlUp).Row
+    ' lastRow = ActiveSheet.Cells.Find("*", searchorder:=xlByRows, searchdirection:=xlPrevious).Row
+    last_row = cur_sheet.Cells.SpecialCells(xlLastCell).Row
+    last_col = cur_sheet.Cells.Find("*", searchorder:=xlByColumns, searchdirection:=xlPrevious).Row
+    
+    Debug.Print last_row & ", " & last_col
+    
+    Next I
+
 End Sub
 
 
@@ -75,230 +135,52 @@ End Sub
 
 
 
+Sub removeAllFormulas()
 
+Dim ws_count As Integer, I As Integer
+Dim cur_sheet As Worksheet
+Dim last_row As Integer, last_col As Integer
+Dim rng As Range
 
+ws_count = ActiveWorkbook.Worksheets.Count
 
+         ' Begin the loop.
+For I = 1 To ws_count
 
+Set cur_sheet = ActiveWorkbook.Worksheets(I)
+Debug.Print "Processing " & cur_sheet.Name
 
-
-
-Private Sub f9handler()
-
-If Range("AutoCalc") = True Then
-    Application.Calculation = xlAutomatic
- Else
-    Application.Calculation = xlManual
- End If
-  Range("UserName").Value = VBA.Environ("USERNAME")
-  Application.Calculate
-End Sub
-
-
-
-
-Private Function listXLLs() As Collection
-  Dim list As New Collection
-  Dim i As Integer
-  i = 3
-  
-  On Error Resume Next      'ignore errors
-  Dim funcInfo As Variant
-  For Each funcInfo In ApplicationRegisteredFunctions
-     If Right(funcInfo, 4) Like ".xll" Then list.Add funcInfo, funcInfo
-     Cells(i, 8).Value = funcInfo
-     i = i + 1
-  Next
-  Set listXLLs = list
-End Function
-
-
-
-Private Sub printAddIns()
-  Dim xllPath As Variant
-  Dim i As Integer
-  i = 3
-  Cells(4, 2).Value = "Running !"
-  
- For Each xllPath In listXLLs()
-    Cells(i, 5).Value = funcInfo
-    Debug.Print "In workbook activate"
-    i = i + 1
- Next
-End Sub
-
-
-Public Sub AllAddins()
-'UpdatebyKutools20191031
-Dim xWSh As Worksheet
-Dim xWB As Workbook
-Dim xAddin As AddIn
-Dim xCOMAddin As COMAddIn
-Dim xFA, xFCA As Integer
-Dim xI As Integer
-Dim xStr As String
- 
-On Error Resume Next
-Application.DisplayAlerts = False
-xStr = "Addins List"
-Set xWB = Application.ActiveWorkbook
-Set xWSh = xWB.Worksheets.Item(xStr)
-If Not xWSh Is Nothing Then
-    xWSh.Delete
+If WorksheetFunction.CountA(ActiveSheet.UsedRange) = 0 Then
+    Debug.Print "Sheet is empty "
+    Next I
 End If
-Set xWSh = xWB.Worksheets.Add
-xWSh.Name = xStr
-xWSh.Range("A1").Value = "Name"
-xWSh.Range("B1").Value = "FullName"
-xWSh.Range("C1").Value = "Installed"
-For xFA = 1 To Application.AddIns.Count
-    Set xAddin = Application.AddIns(xFA)
-    xI = xFA + 1
-    Range("A" & xI).Value = xAddin.Name
-    Range("B" & xI).Value = xAddin.FullName
-    Range("C" & xI).Value = xAddin.Installed
-Next xFA
-xFA = (xFA + 2)
-xWSh.Range("A" & xFA).Value = "Description"
-xWSh.Range("B" & xFA).Value = "progID"
-xWSh.Range("C" & xFA).Value = "Connect"
-For xFCA = 1 To Application.COMAddIns.Count
-    xI = xFCA + xFA
-    Set xCOMAddin = Application.COMAddIns(xFCA)
-    Range("A" & xI).Value = xCOMAddin.Description
-    Range("B" & xI).Value = xCOMAddin.progID
-    Range("C" & xI).Value = xCOMAddin.Connect
-Next xFCA
-Application.DisplayAlerts = True
-End Sub
 
 
-
-Sub ListFolders()
-Dim Fldr As String
-
-With ActiveSheet.Range("AddinsFolder")
-  .ClearContents
-  .Cells(1, 1).Value = Application.UserLibraryPath
-End With
-
-End Sub
+last_row = cur_sheet.Cells.SpecialCells(xlLastCell).Row
+last_col = cur_sheet.Cells.Find("*", searchorder:=xlByColumns, searchdirection:=xlPrevious).Row
 
 
+Set rng = cur_sheet.Range(Cells(1, 1).Address, Cells(last_row, last_col).Address)
+
+Debug.Print "Processing up to  " & rng.Address
 
 
-
-
-
-Private Function baseName(ByVal fileSpec As String) As String
-   Const seperator As String = "\"
-   Dim iPos As Integer
-
-   iPos = InStr(fileSpec, seperator)
-   Do While iPos <> 0
-     fileSpec = Right(fileSpec, Len(fileSpec) - iPos)
-     iPos = InStr(fileSpec, seperator)
-  Loop
-
-   baseName = fileSpec
-End Function
-
-
-
-
-'  worksheet specific subroutine
-Private Sub Worksheet_Change(ByVal Target As Range)
-    Dim KeyCells As Range
-
-    Set KeyCells = Range("A1:A1")
-
-    If Not Application.Intersect(KeyCells, Range(Target.Address)) _
-           Is Nothing Then
-           
-    For i = 1 To 100
-    If IsEmpty(Sheet6.Cells(i, 4)) Then
-        Sheet6.Cells(i, 4).Value = "A1 changed at " & Format(Now(), "h:n:s AM/PM")
-        i = 100
+' For Each c In cur_sheet.Range(Cells(1, 1), Cells(last_row, last_col)).Cells
+For Each c In rng.Cells
+    If IsError(c) Then
+    Debug.Print "Error in " & c.Address
+    c.Value = CStr(c.Value)
     End If
-    Next i
-
-
-     
-End If
-End Sub
-
-
-
-
-
-
-
-
-vbs example
-
-
-
-' this script can extract all code from a spreadsheet
-' the downside to the script
-'	1) the target sheet will be opened
-'	2) the target sheet Trust Settings for Macros must  
-
-option explicit
-
-Const vbext_ct_ClassModule = 2
-Const vbext_ct_Document = 100
-Const vbext_ct_MSForm = 3
-Const vbext_ct_StdModule = 1
-
-Main
-
-Sub Main
-    Dim xl
-    Dim fs
-    Dim WBook
-    Dim VBComp
-    Dim Sfx
-    Dim ExportFolder
-
-
-    If Wscript.Arguments.Count <> 1 Then
-        MsgBox "As the only argument, give the FULL path to an XLS file to extract all the VBA from it."
-    Else
-
-
-
-        Set xl = CreateObject("Excel.Application")
-        Set fs = CreateObject("Scripting.FileSystemObject")
-
-        xl.Visible = true
-
-        Set WBook = xl.Workbooks.Open(Trim(wScript.Arguments(0)))
-
-        ExportFolder = WBook.Path & "\" & fs.GetBaseName(WBook.Name)
-
-        fs.CreateFolder(ExportFolder)
-
-        For Each VBComp In WBook.VBProject.VBComponents
-            Select Case VBComp.Type
-                Case vbext_ct_ClassModule, vbext_ct_Document
-                    Sfx = ".cls"
-                Case vbext_ct_MSForm
-                    Sfx = ".frm"
-                Case vbext_ct_StdModule
-                    Sfx = ".bas"
-                Case Else
-                    Sfx = ""
-            End Select
-            If Sfx <> "" Then
-                On Error Resume Next
-                Err.Clear
-                VBComp.Export ExportFolder & "\" & VBComp.Name & Sfx
-                If Err.Number <> 0 Then
-                    MsgBox "Failed to export " & ExportFolder & "\" & VBComp.Name & Sfx
-                End If
-                On Error Goto 0
-            End If
-        Next
-
-        xl.Quit
+    
+    If (c.Value <> c.Formula) Then
+        Debug.Print c.Address & " "; c.Value & " "; c.Formula
+        c.Formula = CStr(c.Value)
     End If
+Next c
+
+Next I
+    
+
+
 End Sub
+
