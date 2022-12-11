@@ -1,3 +1,29 @@
+' this traps a change in the worksheet in which it is defined (dont define this in workbook or module)
+Private Sub Worksheet_Change(ByVal Target As Range)
+    Dim KeyCells As Range
+
+    Set KeyCells = Range("A1:A1")
+
+    If Not Application.Intersect(KeyCells, Range(Target.Address)) _
+           Is Nothing Then
+           
+   
+    
+    For i = 1 To 100
+    If IsEmpty(Sheet6.Cells(i, 4)) Then
+        Sheet6.Cells(i, 4).Value = "A1 changed at " & Format(Now(), "h:n:s AM/PM")
+        i = 100
+    End If
+    Next i
+
+
+     
+End If
+End Sub
+
+
+
+
 
 
 Sub TestFind()
