@@ -1,0 +1,180 @@
+
+
+On Error GoTo 0			disables error handling
+
+set is required for objects, if you get a message that an object is required,  use set:
+
+set data = Range("a1")   ' range is an object
+
+Application.ScreenUpdating = False              ' setting to False to disable updates and speeds up the macro
+ 
+
+Application.SendKeys ("^G")
+Application.CommandBars.ExecuteMso "Goto"
+
+rngPrecedentRange.Address(External:=True)  gives you the workbook name
+
+
+
+
+---------------------------------------------------------------------------------------
+
+
+
+
+
+Sub Test3()
+ 
+    Dim rngToCheck As Range
+    Dim dicAllPrecedents As Object
+    Dim i As Long
+ 
+    Set rngToCheck = Sheet2.Range("C3")
+    Set dicAllPrecedents = GetAllPrecedents(rngToCheck)
+ 
+    Debug.Print vbCr & vbCr & vbCr & vbCr
+    
+    Debug.Print "==="
+ 
+    If dicAllPrecedents.Count = 0 Then
+        Debug.Print rngToCheck.Address(External:=True); " has no precedent cells."
+    Else
+        For i = LBound(dicAllPrecedents.Keys) To UBound(dicAllPrecedents.Keys)
+            Debug.Print "[ Level:"; dicAllPrecedents.Items()(i); "]";
+            Debug.Print "[ Address: "; dicAllPrecedents.Keys()(i); " ]"
+        Next i
+    End If
+    Debug.Print "==="
+ 
+End Sub
+
+
+
+---------------------------------------------------------------------------------------
+
+
+
+
+
+
+'won't navigate through precedents in closed or protected workbooks, wont work on hidden sheets
+Public Function GetAllPrecedents(ByRef rngToCheck As Range) As Object
+ 
+    Debug.Print vbCr & vbCr
+    
+    Debug.Print " Important : Make sure all worksheets are unhidden "
+    
+    Const lngTOP_LEVEL As Long = 1
+    Dim dicAllPrecedents As Object
+    Dim strKey As String
+ 
+    Set dicAllPrecedents = CreateObject("Scripting.Dictionary")
+ 
+    Application.ScreenUpdating = False
+ 
+    GetPrecedents rngToCheck, dicAllPrecedents, lngTOP_LEVEL
+    Set GetAllPrecedents = dicAllPrecedents
+ 
+    Application.ScreenUpdating = True
+ 
+End Function
+ 
+ 
+ ' GetPrecedents calls GetCellPrecedents and GetCellPrecedents calls GetPrecedents (recursively)
+Private Sub GetPrecedents(ByRef rngToCheck As Range, ByRef dicAllPrecedents As Object, ByVal lngLevel As Long)
+ 
+    Dim rngCell As Range
+    Dim rngFormulas As Range
+ 
+ 
+    Debug.Print " GetPrecedents: Enter : Level=  " & lngLevel
+    Debug.Print " GetPrecedents: Processing " & rngToCheck.Parent.Name & "'!" & rngToCheck.Address(External:=False)
+ 
+    If Not rngToCheck.Worksheet.ProtectContents Then
+    
+        If rngToCheck.Cells.CountLarge > 1 Then   ' CountLarge is same as Count, gives number of objects in a collection
+            On Error Resume Next
+            Set rngFormulas = rngToCheck.SpecialCells(xlCellTypeFormulas)
+            
+            Debug.Print " Count =  " & rngToCheck.Cells.CountLarge
+            
+            On Error GoTo 0
+        Else
+            If rngToCheck.HasFormula Then Set rngFormulas = rngToCheck
+        End If
+ 
+        If Not rngFormulas Is Nothing Then
+            For Each rngCell In rngFormulas.Cells
+                Debug.Print "GetPrecedents: Formula Cell " & rngCell.Address
+                Debug.Print "GetPrecedents: Source Cell " & rngFormulas.Address       ' since each range is just 1 cell, these are the same
+                Debug.Print "GetPrecedents: Calling GetCellPrecedents "
+                GetCellPrecedents rngCell, dicAllPrecedents, lngLevel
+            Next rngCell
+            rngFormulas.Worksheet.ClearArrows
+        End If
+    End If
+    
+    End Sub
+ 
+
+
+
+
+
+Private Sub GetCellPrecedents(ByRef rngCell As Range, ByRef dicAllPrecedents As Object, ByVal lngLevel As Long)
+ 
+    Dim lngArrow As Long
+    Dim lngLink As Long
+    Dim blnNewArrow As Boolean
+    Dim strPrecedentAddress As String
+    Dim rngPrecedentRange As Range
+    
+    Debug.Print " "
+    Debug.Print " GetCellPrecedents :  Enter"
+    Debug.Print " GetCellPrecedents : Processing one cell.... " & rngCell.Parent.Name & "'!" & rngCell.Address(External:=False)
+    
+    Do
+        lngArrow = lngArrow + 1
+        blnNewArrow = True
+        lngLink = 0
+ 
+        Do
+            lngLink = lngLink + 1
+ 
+            rngCell.ShowPrecedents
+ 
+            On Error Resume Next
+            Set rngPrecedentRange = rngCell.NavigateArrow(True, lngArrow, lngLink)
+           If Err.Number <> 0 Then
+                Debug.Print "GetCellPrecedents: Err.Num =  " & Err.Number & " so breaking the loop and exiting GetCellPrecedents "
+                Exit Do
+            End If
+ 
+            Debug.Print "GetCellPrecedents: After Navigate Arrow.... " & rngPrecedentRange.Address(External:=True)
+            
+            On Error GoTo 0
+            strPrecedentAddress = rngPrecedentRange.Address(False, False, xlA1, True)
+ 
+            Debug.Print "GetCellPrecedents : strPrecedentAddress = " & strPrecedentAddress
+            Debug.Print "GetCellPrecedents : rngCell = " & rngCell.Address
+            Debug.Print "GetCellPrecedents : rngCell = " & rngCell.Address(False, False, xlA1, True)
+            
+            If strPrecedentAddress = rngCell.Address(False, False, xlA1, True) Then
+                Exit Do
+            Else
+ 
+                blnNewArrow = False
+ 
+                If Not dicAllPrecedents.Exists(strPrecedentAddress) Then
+                    dicAllPrecedents.Add strPrecedentAddress, lngLevel
+                    Debug.Print "GetCellPrecedents : Calling GetPrecedents (recursive) "
+                    GetPrecedents rngPrecedentRange, dicAllPrecedents, lngLevel + 1
+                End If
+            End If
+        Loop
+ 
+        If blnNewArrow Then Exit Do
+    Loop
+ End Sub
+ 
+
