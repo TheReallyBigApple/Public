@@ -1,40 +1,44 @@
-' this traps a change in the worksheet in which it is defined (dont define this in workbook or module)
-Private Sub Worksheet_Change(ByVal Target As Range)
-    Dim KeyCells As Range
 
-    Set KeyCells = Range("A1:A1")
-
-    If Not Application.Intersect(KeyCells, Range(Target.Address)) _
-           Is Nothing Then
-           
-   
-    
-    For i = 1 To 100
-    If IsEmpty(Sheet6.Cells(i, 4)) Then
-        Sheet6.Cells(i, 4).Value = "A1 changed at " & Format(Now(), "h:n:s AM/PM")
-        i = 100
-    End If
-    Next i
+Create a Utils folder
+		1) TraceDependents
+		2) CallCount
+		3) LastChanged
+		4) RemoveAllFormulas
+		5) SearchAndExport
+		6) GetLastRowAndColumn
+		7) ListAllAddIns
 
 
-     
-End If
-End Sub
+to figure out what macro a button runs, right-click and assign OR Shift-F3 to see all
 
 
 
 
 
 
-Sub TestFind()
+
+
+
+
+-------------------------------------------------------------------------------------------------------
+
+	5) SearchAndExport
+
+
+
+' you can search in either xlValues or xlFormulas
+Sub FindAndExportFormulas()
 
 Dim ws_count As Integer, I As Integer
 Dim cur_sheet As Worksheet
 Dim search_string As String
 
-search_string = "88"
+search_string = "SUM"
 
+PathAndFile = VBA.Environ("TEMP") & "\Formulas" & ActiveWorkbook.Name & ".txt"
 
+Open PathAndFile For Output As 1
+        
 
 ws_count = ActiveWorkbook.Worksheets.Count
 
@@ -50,13 +54,14 @@ Set cur_sheet = ActiveWorkbook.Worksheets(I)
 
 Debug.Print "Processing " & cur_sheet.Name
 
-
-'Look for first instance of "‘Light & Heat"
-Set rg = Sheets(ActiveWorkbook.Worksheets(I).Name).UsedRange.Find(search_string)
+Set rg = Sheets(ActiveWorkbook.Worksheets(I).Name).UsedRange.Find(search_string, LookIn:=xlFormulas, Lookat:=xlPart)
 
 'If not found then exit
 If rg Is Nothing Then GoTo NextIteration
 
+Debug.Print cur_sheet.Name & " , " & rg.Address & " , " & rg.Value & " , " & rg.Formula
+Print #1, cur_sheet.Name & " , " & rg.Address & " , " & rg.Value & " , " & rg.Formula
+         
 'Make a copy of the range object
 Set old_rg = rg
 FindStr = FindStr & "|" & rg.Address
@@ -65,10 +70,8 @@ FindStr = FindStr & "|" & rg.Address
     Do
           ' searches value and formula
         ' Set rg = Sheets(ActiveWorkbook.Worksheets(I).Name).UsedRange.Find(search_string, After:=Range(old_rg.Address))
-            ' searches just formula
-        ' Set rg = Sheets(ActiveWorkbook.Worksheets(I).Name).UsedRange.Find(search_string, After:=Range(old_rg.Address), LookIn:=xlFormulas)
-                  ' searches just formula
-        Set rg = Sheets(ActiveWorkbook.Worksheets(I).Name).UsedRange.Find(search_string, After:=Range(old_rg.Address), LookIn:=xlValues)
+
+        Set rg = Sheets(ActiveWorkbook.Worksheets(I).Name).UsedRange.Find(search_string, After:=Range(old_rg.Address), LookIn:=xlFormulas, Lookat:=xlPart)
   
         '  Lookat:=xlPart)  to accept a partial match
         ' Lookat:=xlWhole)  for a exact match
@@ -78,7 +81,7 @@ FindStr = FindStr & "|" & rg.Address
         
       
         Debug.Print cur_sheet.Name & " , " & rg.Address & " , " & rg.Value & " , " & rg.Formula
-         
+         Print #1, cur_sheet.Name & " , " & rg.Address & " , " & rg.Value & " , " & rg.Formula
           
         'Add the latest address to the string of addresses
         FindStr = FindStr & "|" & rg.Address
@@ -91,7 +94,7 @@ NextIteration:
 
 Next I
 
-
+Close #1
 
 End Sub
 
@@ -99,35 +102,118 @@ End Sub
 
 
 
-Sub removeSomeFormulas()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---------------------------------------------------------------
+
+2) CallCount
+
+Function NumCalls(d As Double) As Integer
+Static CallCount As Integer
+
+Debug.Print CallCount
+CallCount = CallCount + 1
+NumCalls = CallCount
+End Function
+
+-- to call... =NumCalls(A1)
+
+---------------------------------------------------------------
+
+
+
+
+
+---------------------------------------------------------------
+4) Remove/Print AllFormulas
+
+
+' To REMOVE all formulas, uncomment the c.Formula = CStr(c.Value)
+' To assign to a button, Developer>Insert>(first one)
+Sub PrintAllFormulas()
 
 Dim ws_count As Integer, I As Integer
 Dim cur_sheet As Worksheet
+Dim last_row As Integer, last_col As Integer
+Dim rng As Range
+
+Close #1
 
 ws_count = ActiveWorkbook.Worksheets.Count
 
-         ' Begin the loop.
+PathAndFile = VBA.Environ("TEMP") & "\Formulas" & ActiveWorkbook.Name & ".txt"
+
+Open PathAndFile For Output As 1
+        
+        
 For I = 1 To ws_count
 
 Set cur_sheet = ActiveWorkbook.Worksheets(I)
 Debug.Print "Processing " & cur_sheet.Name
 
-
-
-For Each c In cur_sheet.Range("J1:K5").Cells
-    If (c.Value <> c.Formula) Then
-        Debug.Print c.Address & " "; c.Value & " "; c.Formula
-        c.Formula = c.Value
-    End If
-Next c
-
-Next I
+    If WorksheetFunction.CountA(ActiveSheet.UsedRange) = 0 Then
+        Debug.Print "Sheet is empty "
+    Else
     
 
+        last_row = cur_sheet.Cells.SpecialCells(xlLastCell).Row
+        last_col = cur_sheet.Cells.Find("*", searchorder:=xlByColumns, searchdirection:=xlPrevious).Row
+        
+        Debug.Print "Last Row   " & last_row
+        Debug.Print "Last Col   " & last_col
+        
+        Set rng = cur_sheet.Range(Cells(1, 1).Address, Cells(last_row, last_col).Address)
+        
+        Debug.Print "Processing up to  " & rng.Address
+        
+        
+        ' For Each c In cur_sheet.Range(Cells(1, 1), Cells(last_row, last_col)).Cells
+        For Each c In rng.Cells
+            If IsError(c) Then
+            Debug.Print "Error in " & c.Address
+            c.Value = CStr(c.Value)
+            End If
+            
+            If (Trim(UCase(c.Value)) <> Trim(UCase(c.Formula))) Then
+                Debug.Print cur_sheet.Name & " " & c.Address & " "; c.Value & " "; c.Formula
+               Print #1, cur_sheet.Name & " " & c.Address & " "; c.Value & " "; c.Formula
+                ' c.Formula = CStr(c.Value)
+            End If
+        Next c
+    End If
+Next I
+    
+Close #1
 
 End Sub
 
 
+
+
+
+
+
+---------------------------------------------------------------
+6) GetLastRowLastColumn
 
 Sub getLastRowAndColumn()
 
@@ -156,57 +242,341 @@ Sub getLastRowAndColumn()
 End Sub
 
 
+---------------------------------------------------------------
 
 
 
 
 
-Sub removeAllFormulas()
 
-Dim ws_count As Integer, I As Integer
-Dim cur_sheet As Worksheet
-Dim last_row As Integer, last_col As Integer
-Dim rng As Range
 
-ws_count = ActiveWorkbook.Worksheets.Count
 
-         ' Begin the loop.
-For I = 1 To ws_count
 
-Set cur_sheet = ActiveWorkbook.Worksheets(I)
-Debug.Print "Processing " & cur_sheet.Name
 
-If WorksheetFunction.CountA(ActiveSheet.UsedRange) = 0 Then
-    Debug.Print "Sheet is empty "
-    Next I
+
+
+
+
+
+
+
+
+---------------------------------------------------------------
+3) Last Changed .. defined on the sheet level
+
+' this traps a change in the worksheet in which it is defined (dont define this in workbook or module)
+Private Sub Worksheet_Change(ByVal Target As Range)
+    Dim KeyCells As Range
+
+    Set KeyCells = Range("A1:A1")
+
+    If Not Application.Intersect(KeyCells, Range(Target.Address)) _
+           Is Nothing Then
+           
+   
+    
+    For i = 1 To 100
+    If IsEmpty(Sheet6.Cells(i, 4)) Then
+        Sheet6.Cells(i, 4).Value = "A1 changed at " & Format(Now(), "h:n:s AM/PM")
+        i = 100
+    End If
+    Next i
+
+
+     
 End If
-
-
-last_row = cur_sheet.Cells.SpecialCells(xlLastCell).Row
-last_col = cur_sheet.Cells.Find("*", searchorder:=xlByColumns, searchdirection:=xlPrevious).Row
-
-
-Set rng = cur_sheet.Range(Cells(1, 1).Address, Cells(last_row, last_col).Address)
-
-Debug.Print "Processing up to  " & rng.Address
-
-
-' For Each c In cur_sheet.Range(Cells(1, 1), Cells(last_row, last_col)).Cells
-For Each c In rng.Cells
-    If IsError(c) Then
-    Debug.Print "Error in " & c.Address
-    c.Value = CStr(c.Value)
-    End If
-    
-    If (c.Value <> c.Formula) Then
-        Debug.Print c.Address & " "; c.Value & " "; c.Formula
-        c.Formula = CStr(c.Value)
-    End If
-Next c
-
-Next I
-    
-
-
 End Sub
+
+
+
+
+
+
+---------------------------------------------------------------
+
+
+-------- to write to a file
+
+PathAndFile = VBA.Environ("TEMP") & "\Formulas" & ActiveWorkbook.Name & ".txt"
+Open PathAndFile For Output As 1
+Print #1, "Yada yada yada blah blah blah"
+Close #1
+
+
+
+---------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---------------------------------------------------------------
+
+
+
+
+1) TraceDependents
+
+-------------------------- ThisWorkbook  ----------------------------
+
+
+' https://colinlegg.wordpress.com/2014/01/14/vba-determine-all-precedent-cells-a-nice-example-of-recursion/
+
+Sub FindPrecedents()
+ 
+    Dim rngToCheck As Range
+    Dim dicAllPrecedents As Object
+    Dim i As Long
+ 
+    Set rngToCheck = Sheet2.Range("C3")
+    Set dicAllPrecedents = GetAllPrecedents(rngToCheck)
+ 
+    Debug.Print vbCr & vbCr & vbCr & vbCr
+    
+    Debug.Print "==="
+ 
+    If dicAllPrecedents.Count = 0 Then
+        Debug.Print rngToCheck.Address(External:=True); " has no precedent cells."
+    Else
+        For i = LBound(dicAllPrecedents.Keys) To UBound(dicAllPrecedents.Keys)
+            Debug.Print "[ Level:"; dicAllPrecedents.Items()(i); "]";
+            Debug.Print "[ Address: "; dicAllPrecedents.Keys()(i); " ]"
+        Next i
+    End If
+    Debug.Print "==="
+ 
+End Sub
+
+
+--------------------------- module  ---------------------------------
+
+'won't navigate through precedents in closed or protected workbooks, wont work on hidden sheets
+Public Function GetAllPrecedents(ByRef rngToCheck As Range) As Object
+ 
+    Debug.Print vbCr & vbCr
+    
+    Debug.Print " Important : Make sure all worksheets are unhidden "
+    
+    Const lngTOP_LEVEL As Long = 1
+    Dim dicAllPrecedents As Object
+    Dim strKey As String
+ 
+    Set dicAllPrecedents = CreateObject("Scripting.Dictionary")
+ 
+    Application.ScreenUpdating = False
+ 
+    GetPrecedents rngToCheck, dicAllPrecedents, lngTOP_LEVEL
+    Set GetAllPrecedents = dicAllPrecedents
+ 
+    Application.ScreenUpdating = True
+ 
+End Function
+ 
+ 
+ ' GetPrecedents calls GetCellPrecedents which calls GetPrecedents (recursively) (all defined as a Module )
+Private Sub GetPrecedents(ByRef rngToCheck As Range, ByRef dicAllPrecedents As Object, ByVal lngLevel As Long)
+ 
+    Dim rngCell As Range
+    Dim rngFormulas As Range
+ 
+ 
+    Debug.Print " GetPrecedents: Enter : Level=  " & lngLevel
+    Debug.Print " GetPrecedents: Processing " & rngToCheck.Parent.Name & "'!" & rngToCheck.Address(External:=False)
+ 
+    If Not rngToCheck.Worksheet.ProtectContents Then
+    
+        If rngToCheck.Cells.CountLarge > 1 Then   ' CountLarge is same as Count, gives number of objects in a collection
+            On Error Resume Next
+            Set rngFormulas = rngToCheck.SpecialCells(xlCellTypeFormulas)
+            
+            Debug.Print " Count =  " & rngToCheck.Cells.CountLarge
+            
+            On Error GoTo 0
+        Else
+            If rngToCheck.HasFormula Then Set rngFormulas = rngToCheck
+        End If
+ 
+        If Not rngFormulas Is Nothing Then
+            For Each rngCell In rngFormulas.Cells
+                Debug.Print "GetPrecedents: Formula Cell " & rngCell.Address
+                Debug.Print "GetPrecedents: Source Cell " & rngFormulas.Address       ' since each range is just 1 cell, these are the same
+                Debug.Print "GetPrecedents: Calling GetCellPrecedents "
+                GetCellPrecedents rngCell, dicAllPrecedents, lngLevel
+            Next rngCell
+            rngFormulas.Worksheet.ClearArrows
+        End If
+    End If
+    
+    End Sub
+ 
+
+
+
+
+
+Private Sub GetCellPrecedents(ByRef rngCell As Range, ByRef dicAllPrecedents As Object, ByVal lngLevel As Long)
+ 
+    Dim lngArrow As Long
+    Dim lngLink As Long
+    Dim blnNewArrow As Boolean
+    Dim strPrecedentAddress As String
+    Dim rngPrecedentRange As Range
+    
+    Debug.Print " "
+    Debug.Print " GetCellPrecedents :  Enter"
+    Debug.Print " GetCellPrecedents : Processing one cell.... " & rngCell.Parent.Name & "'!" & rngCell.Address(External:=False)
+    
+    Do
+        lngArrow = lngArrow + 1
+        blnNewArrow = True
+        lngLink = 0
+ 
+        Do
+            lngLink = lngLink + 1
+ 
+            rngCell.ShowPrecedents
+ 
+            On Error Resume Next
+            Set rngPrecedentRange = rngCell.NavigateArrow(True, lngArrow, lngLink)
+           If Err.Number <> 0 Then
+                Debug.Print "GetCellPrecedents: Err.Num =  " & Err.Number & " so breaking the loop and exiting GetCellPrecedents "
+                Exit Do
+            End If
+ 
+            Debug.Print "GetCellPrecedents: After Navigate Arrow.... " & rngPrecedentRange.Address(External:=True)
+            
+            On Error GoTo 0
+            strPrecedentAddress = rngPrecedentRange.Address(False, False, xlA1, True)
+ 
+            Debug.Print "GetCellPrecedents : strPrecedentAddress = " & strPrecedentAddress
+            Debug.Print "GetCellPrecedents : rngCell = " & rngCell.Address
+            Debug.Print "GetCellPrecedents : rngCell = " & rngCell.Address(False, False, xlA1, True)
+            
+            If strPrecedentAddress = rngCell.Address(False, False, xlA1, True) Then
+                Exit Do
+            Else
+ 
+                blnNewArrow = False
+ 
+                If Not dicAllPrecedents.Exists(strPrecedentAddress) Then
+                    dicAllPrecedents.Add strPrecedentAddress, lngLevel
+                    Debug.Print "GetCellPrecedents : Calling GetPrecedents (recursive) "
+                    GetPrecedents rngPrecedentRange, dicAllPrecedents, lngLevel + 1
+                End If
+            End If
+        Loop
+ 
+        If blnNewArrow Then Exit Do
+    Loop
+ End Sub
+ 
+
+
+
+
+
+
+-----------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+7) List all addins
+
+
+ Application.OnKey "{F5}", "printAddIns"
+ Application.OnKey "{F3}", "AllAddIns"
+
+
+
+
+Private Function listXLLs() As Collection
+  Dim list As New Collection
+  Dim I As Integer
+  I = 3
+  
+  On Error Resume Next      'ignore errors
+  Dim funcInfo As Variant
+  For Each funcInfo In ApplicationRegisteredFunctions
+     If Right(funcInfo, 4) Like ".xll" Then list.Add funcInfo, funcInfo
+     Cells(I, 8).Value = funcInfo
+     I = I + 1
+  Next
+  Set listXLLs = list
+End Function
+
+
+
+Private Sub printAddIns()
+  Dim xllPath As Variant
+  Dim I As Integer
+  I = 3
+  Cells(4, 2).Value = "Running !"
+  
+ For Each xllPath In listXLLs()
+    Cells(I, 5).Value = funcInfo
+    Debug.Print "In workbook activate"
+    I = I + 1
+ Next
+End Sub
+
+
+Public Sub AllAddins()
+'UpdatebyKutools20191031
+Dim xWSh As Worksheet
+Dim xWB As Workbook
+Dim xAddin As AddIn
+Dim xCOMAddin As COMAddIn
+Dim xFA, xFCA As Integer
+Dim xI As Integer
+Dim xStr As String
+ 
+On Error Resume Next
+Application.DisplayAlerts = False
+xStr = "Addins List"
+Set xWB = Application.ActiveWorkbook
+Set xWSh = xWB.Worksheets.Item(xStr)
+If Not xWSh Is Nothing Then
+    xWSh.Delete
+End If
+Set xWSh = xWB.Worksheets.Add
+xWSh.Name = xStr
+xWSh.Range("A1").Value = "Name"
+xWSh.Range("B1").Value = "FullName"
+xWSh.Range("C1").Value = "Installed"
+For xFA = 1 To Application.AddIns.Count
+    Set xAddin = Application.AddIns(xFA)
+    xI = xFA + 1
+    Range("A" & xI).Value = xAddin.Name
+    Range("B" & xI).Value = xAddin.FullName
+    Range("C" & xI).Value = xAddin.Installed
+Next xFA
+xFA = (xFA + 2)
+xWSh.Range("A" & xFA).Value = "Description"
+xWSh.Range("B" & xFA).Value = "progID"
+xWSh.Range("C" & xFA).Value = "Connect"
+For xFCA = 1 To Application.COMAddIns.Count
+    xI = xFCA + xFA
+    Set xCOMAddin = Application.COMAddIns(xFCA)
+    Range("A" & xI).Value = xCOMAddin.Description
+    Range("B" & xI).Value = xCOMAddin.progID
+    Range("C" & xI).Value = xCOMAddin.Connect
+Next xFCA
+Application.DisplayAlerts = True
+End Sub
+
+
+
 
