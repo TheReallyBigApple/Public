@@ -1,180 +1,125 @@
 
+Worksheet_Calculate             	called once when sheet is calculated, does not report on specific cell
+Worksheet_Change             		only captures manual changes
+					does not capture cells that are dependent on something that changed
+					does not capture volatile cells like NOW()
 
-On Error GoTo 0			disables error handling
 
-set is required for objects, if you get a message that an object is required,  use set:
 
-set data = Range("a1")   ' range is an object
 
-Application.ScreenUpdating = False              ' setting to False to disable updates and speeds up the macro
+CTL-G to get to immediate window
+	?Application.EnableEvents
+	?Application.ActiveSheet.Name
+	?ActiveSheet.CodeName 
+
+Debug.Print Application.ActiveCell.CurrentRegion.Value
+
+Debug.Print Application.ActiveWindow.ActiveCell.Address
+
+you can get an array range like this
+?ActiveCell.CurrentRegion.Address
+
+
+check these out...
+  ActiveCell.CurrentRegion.Calculate
+  ActiveCell.CurrentRegion.CurrentArray
+  ActiveCell.CurrentRegion.Delete
+  ActiveCell.CurrentRegion.ListNames
+  ActiveCell.CurrentRegion.Select
+  ActiveCell.CurrentRegion.Ungroup
+
+
+
+Application.CalculationInterruptKey
+	?xlEscKey		 1 
+	?xlNoKey		 0 
+	?xlAnyKey		 2 
+
+
+
+
  
 
-Application.SendKeys ("^G")
-Application.CommandBars.ExecuteMso "Goto"
-
-rngPrecedentRange.Address(External:=True)  gives you the workbook name
 
 
 
-
----------------------------------------------------------------------------------------
-
-
-
-
-
-Sub Test3()
- 
-    Dim rngToCheck As Range
-    Dim dicAllPrecedents As Object
-    Dim i As Long
- 
-    Set rngToCheck = Sheet2.Range("C3")
-    Set dicAllPrecedents = GetAllPrecedents(rngToCheck)
- 
-    Debug.Print vbCr & vbCr & vbCr & vbCr
-    
-    Debug.Print "==="
- 
-    If dicAllPrecedents.Count = 0 Then
-        Debug.Print rngToCheck.Address(External:=True); " has no precedent cells."
-    Else
-        For i = LBound(dicAllPrecedents.Keys) To UBound(dicAllPrecedents.Keys)
-            Debug.Print "[ Level:"; dicAllPrecedents.Items()(i); "]";
-            Debug.Print "[ Address: "; dicAllPrecedents.Keys()(i); " ]"
-        Next i
-    End If
-    Debug.Print "==="
- 
+Private Sub TestCalculateFullRebuild()
+Application.CalculateFullRebuild
 End Sub
 
 
 
----------------------------------------------------------------------------------------
 
 
 
+Sub CalculateEveryCell()
+
+Dim ws_count As Integer, I As Integer
+Dim cur_sheet As Worksheet
+Dim last_row As Integer, last_col As Integer
+Dim rng As Range
+
+Dim PathAndFile As String
+  
+PathAndFile = "C:\_InProgress\Work\EveryCalculatedCell.txt"
+  
 
 
+Open PathAndFile For Output As 10
 
-'won't navigate through precedents in closed or protected workbooks, wont work on hidden sheets
-Public Function GetAllPrecedents(ByRef rngToCheck As Range) As Object
- 
-    Debug.Print vbCr & vbCr
-    
-    Debug.Print " Important : Make sure all worksheets are unhidden "
-    
-    Const lngTOP_LEVEL As Long = 1
-    Dim dicAllPrecedents As Object
-    Dim strKey As String
- 
-    Set dicAllPrecedents = CreateObject("Scripting.Dictionary")
- 
-    Application.ScreenUpdating = False
- 
-    GetPrecedents rngToCheck, dicAllPrecedents, lngTOP_LEVEL
-    Set GetAllPrecedents = dicAllPrecedents
- 
-    Application.ScreenUpdating = True
- 
-End Function
- 
- 
- ' GetPrecedents calls GetCellPrecedents and GetCellPrecedents calls GetPrecedents (recursively)
-Private Sub GetPrecedents(ByRef rngToCheck As Range, ByRef dicAllPrecedents As Object, ByVal lngLevel As Long)
- 
-    Dim rngCell As Range
-    Dim rngFormulas As Range
- 
- 
-    Debug.Print " GetPrecedents: Enter : Level=  " & lngLevel
-    Debug.Print " GetPrecedents: Processing " & rngToCheck.Parent.Name & "'!" & rngToCheck.Address(External:=False)
- 
-    If Not rngToCheck.Worksheet.ProtectContents Then
-    
-        If rngToCheck.Cells.CountLarge > 1 Then   ' CountLarge is same as Count, gives number of objects in a collection
-            On Error Resume Next
-            Set rngFormulas = rngToCheck.SpecialCells(xlCellTypeFormulas)
-            
-            Debug.Print " Count =  " & rngToCheck.Cells.CountLarge
-            
-            On Error GoTo 0
+ws_count = ActiveWorkbook.Worksheets.Count
+        
+        
+For I = 1 To ws_count
+
+Set cur_sheet = ActiveWorkbook.Worksheets(I)
+Debug.Print "Processing " & cur_sheet.Name
+
+    If WorksheetFunction.CountA(ActiveSheet.UsedRange) = 0 Then
+        Debug.Print "Sheet is empty "
+    Else
+        last_row = cur_sheet.Cells.SpecialCells(xlLastCell).Row
+        last_col = cur_sheet.Cells.Find("*", searchorder:=xlByColumns, searchdirection:=xlPrevious).Column
+        
+        Debug.Print "Last Row   " & last_row
+        Debug.Print "Last Col   " & last_col
+        
+        Set rng = cur_sheet.Range(Cells(1, 1).Address, Cells(last_row, last_col).Address)
+        
+        Debug.Print "Processing up to  " & rng.Address
+        
+        
+        ' For Each c In cur_sheet.Range(Cells(1, 1), Cells(last_row, last_col)).Cells
+        For Each c In rng.Cells
+        If c.HasArray Then
+                Print #10, "CalculateEver :      ", cur_sheet.Name, "   : ", c.Address, "  :  ", c.CurrentRegion.Address
+                c.CurrentRegion.Calculate
         Else
-            If rngToCheck.HasFormula Then Set rngFormulas = rngToCheck
+                Print #10, "CalculateEver :      ", cur_sheet.Name, "   : ", c.Address, "  :  "
+                c.Calculate
         End If
- 
-        If Not rngFormulas Is Nothing Then
-            For Each rngCell In rngFormulas.Cells
-                Debug.Print "GetPrecedents: Formula Cell " & rngCell.Address
-                Debug.Print "GetPrecedents: Source Cell " & rngFormulas.Address       ' since each range is just 1 cell, these are the same
-                Debug.Print "GetPrecedents: Calling GetCellPrecedents "
-                GetCellPrecedents rngCell, dicAllPrecedents, lngLevel
-            Next rngCell
-            rngFormulas.Worksheet.ClearArrows
-        End If
+
+     
+          
+        Next c
     End If
+Next I
     
-    End Sub
- 
+Close #10
+
+End Sub
 
 
 
-
-
-Private Sub GetCellPrecedents(ByRef rngCell As Range, ByRef dicAllPrecedents As Object, ByVal lngLevel As Long)
- 
-    Dim lngArrow As Long
-    Dim lngLink As Long
-    Dim blnNewArrow As Boolean
-    Dim strPrecedentAddress As String
-    Dim rngPrecedentRange As Range
+Private Sub Worksheet_Calculate()
+  Dim PathAndFile As String
+  Dim time_str As String
+  
+  time_str = Format(Now(), "hh:nn:ss")
+  PathAndFile = "C:\_InProgress\Work\ChangedCells.txt"
     
-    Debug.Print " "
-    Debug.Print " GetCellPrecedents :  Enter"
-    Debug.Print " GetCellPrecedents : Processing one cell.... " & rngCell.Parent.Name & "'!" & rngCell.Address(External:=False)
-    
-    Do
-        lngArrow = lngArrow + 1
-        blnNewArrow = True
-        lngLink = 0
- 
-        Do
-            lngLink = lngLink + 1
- 
-            rngCell.ShowPrecedents
- 
-            On Error Resume Next
-            Set rngPrecedentRange = rngCell.NavigateArrow(True, lngArrow, lngLink)
-           If Err.Number <> 0 Then
-                Debug.Print "GetCellPrecedents: Err.Num =  " & Err.Number & " so breaking the loop and exiting GetCellPrecedents "
-                Exit Do
-            End If
- 
-            Debug.Print "GetCellPrecedents: After Navigate Arrow.... " & rngPrecedentRange.Address(External:=True)
-            
-            On Error GoTo 0
-            strPrecedentAddress = rngPrecedentRange.Address(False, False, xlA1, True)
- 
-            Debug.Print "GetCellPrecedents : strPrecedentAddress = " & strPrecedentAddress
-            Debug.Print "GetCellPrecedents : rngCell = " & rngCell.Address
-            Debug.Print "GetCellPrecedents : rngCell = " & rngCell.Address(False, False, xlA1, True)
-            
-            If strPrecedentAddress = rngCell.Address(False, False, xlA1, True) Then
-                Exit Do
-            Else
- 
-                blnNewArrow = False
- 
-                If Not dicAllPrecedents.Exists(strPrecedentAddress) Then
-                    dicAllPrecedents.Add strPrecedentAddress, lngLevel
-                    Debug.Print "GetCellPrecedents : Calling GetPrecedents (recursive) "
-                    GetPrecedents rngPrecedentRange, dicAllPrecedents, lngLevel + 1
-                End If
-            End If
-        Loop
- 
-        If blnNewArrow Then Exit Do
-    Loop
- End Sub
- 
+    Open PathAndFile For Append As 1
+    Print #1, time_str, "   ", "Calculate : Volatile :      "
+    Close #1
 
+End Sub
