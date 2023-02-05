@@ -1,179 +1,57 @@
 
-
-
-Regression testing performance is difficult because you would probably have to do it for a few weeks before it becomes statistically significant.
-
-Having said that its useful to establish the methodology.
-
-While weve made a lot of small improvements and they havent helped, I would offer some hope in that in my experience performance problems are
-sometimes very difficult to solve but sometimes they get solved by routine upgrades, i.e. Excel, Python or Windows itself. 
-
-
- 
-https://support.microsoft.com/en-us/office/tips-for-improving-excel-s-performance-a8294ac5-652d-47f2-8e89-1c3ce2c09439
-
-https://learn.microsoft.com/en-us/office/vba/excel/concepts/excel-performance/excel-performance-and-limit-improvements
-
-
-
-Settings>Ease of Access turning off animation 
-
-Tools > Options > Advanced > Editing Options > uncheck the Automatically Flash Fill box
-
-python 2 vs 3
-
-Certain vba commands like repeated cell selections or adding a sheet can degrade as it tries to display the events.
-You can turn off screen updating like this 
-
-	Application.ScreenUpdating = False
-	Workooks.Add
-	Application.ScreenUpdating = True
-
-
-another option is DoEvents which enables the visual but still improves the performance
-	Workbooks.Add
-	DoEvents
-
-
-are you on 32 or 64 bit ?
-	File>Account>About Excel
-		Microsoft® Excel® 2016 MSO (Version 2212 Build 16.0.15928.20196) 64-bit 
-
-
-windows version ?
-	type winver 
-	type ver
-	settings>system>about
+- turns off calculation for a sheet even if you hit F9
+Application.Worksheets("Mets").EnableCalculation = False
+Application.ScreenUpdating = False	-- temporary to save the expense of constantly updating the screen
 
 
 
 
 
+Application.ScreenUpdating					set this to False to speed up your macro
+
+'  if your running something intensive, this would help
+    With Application
+        .EnableCancelKey = xlErrorHandler 'Esc will exit macro
+        .ScreenUpdating = False
+        .Calculation = xlCalculationManual
+    End With
+
+
+-- get the cell of a range
+?rPayoff.Cells.Column			 6 
+?rPayoff.Cells.Row	
+?rPayoff.Address
 
 
 
+Sub LoopListAllShapes()
 
+Dim shape_type As String
+Dim ws_count As Integer
+Dim cur_sheet As Worksheet
 
-
-
-
-
-
-' useful for getting all the names and objects..... its not perfect
-Sub GetAllNamedRanges()
-Dim sh As Worksheet
-Dim nm As Name
-
-PathAndFile = VBA.Environ("TEMP") & "\" & ActiveWorkbook.Name & "Names" & ".txt"
-
-Debug.Print "Putting results to " & PathAndFile
-Open PathAndFile For Output As 1
+ws_count = ActiveWorkbook.Worksheets.Count
         
-   
-On Error Resume Next
+For I = 1 To ws_count
 
-For Each nm In ActiveWorksheet.Names
-      Print #1, "Worksheet " & nm.Name & " " & nm.RefersTo
-   Next nm
-   
-   For Each nm In ActiveWorkbook.Names
-      Print #1, "Workbook " & nm.Name & " " & nm.RefersTo
-   Next nm
+Set cur_sheet = ActiveWorkbook.Worksheets(I)
 
+    
+    For Each Shape In cur_sheet.Shapes
+            
+            ' https://learn.microsoft.com/en-us/office/vba/api/office.msoshapetype
+            Select Case Shape.Type
+                Case msoFormControl
+                     shape_type = "   - Form Control"
+                Case msoPicture
+                     shape_type = "    - Picture "
+                Case Else
+                    shape_type = "    - " & CStr(Shape.Type)
+                End Select
+                
+            Debug.Print cur_sheet.Name, ":  " & Shape.Name & "   " & shape_type & "  " & Shape.OnAction & "   " & Shape.DrawingObject.Text
 
-   For Each nm In Application.Names
-      Print #1, "Application " & nm.Name & " " & nm.RefersTo
-   Next nm
-   
-   For Each nm In Sheet4.ListObjects
-         Print #1, "ListObjects " & nm.Name & " " & nm.RefersTo
-   Next nm
-   
-On Error GoTo 0
-
-Close #1
-
+    Next Shape
+Next I
+    
 End Sub
-
-
-
-
-
-
---------------  vbs  -----------------------
-
-option explicit
-
-Const vbext_ct_ClassModule = 2
-Const vbext_ct_Document = 100
-Const vbext_ct_MSForm = 3
-Const vbext_ct_StdModule = 1
-
-Main
-
-Sub Main
-	Dim xl
-	Dim fs
-	Dim WBook
-	Dim VBComp
-	Dim Sfx
-	Dim ExportFolder
-
-	If Wscript.Arguments.Count <> 1 Then
-		MsgBox "As the only argument, give the FULL path to an XLS file to extract all the VBA from it."
-	Else
-
-		Set xl = CreateObject("Excel.Application")
-		Set fs = CreateObject("Scripting.FileSystemObject")
-
-		xl.Visible = true
-
-		Set WBook = xl.Workbooks.Open(Trim(wScript.Arguments(0)))
-
-		ExportFolder = WBook.Path & "\" & fs.GetBaseName(WBook.Name)
-
-		fs.CreateFolder(ExportFolder)
-
-		For Each VBComp In WBook.VBProject.VBComponents
-			Select Case VBComp.Type
-				Case vbext_ct_ClassModule, vbext_ct_Document
-					Sfx = ".cls"
-				Case vbext_ct_MSForm
-					Sfx = ".frm"
-				Case vbext_ct_StdModule
-					Sfx = ".bas"
-				Case Else
-					Sfx = ""
-			End Select
-			If Sfx <> "" Then
-				On Error Resume Next
-				Err.Clear
-				VBComp.Export ExportFolder & "\" & VBComp.Name & Sfx
-				If Err.Number <> 0 Then
-					MsgBox "Failed to export " & ExportFolder & "\" & VBComp.Name & Sfx
-				End If
-				On Error Goto 0
-			End If
-		Next
-
-		xl.Quit
-	End If
-End Sub
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
