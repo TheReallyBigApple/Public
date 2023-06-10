@@ -1,125 +1,92 @@
+Option Explicit
 
-Worksheet_Calculate             	called once when sheet is calculated, does not report on specific cell
-Worksheet_Change             		only captures manual changes
-					does not capture cells that are dependent on something that changed
-					does not capture volatile cells like NOW()
+Public CallCount As Integer
 
+'you may define as static a variable, function or procedure
+'variable:       Static myInt As Integer
+'function:       static function myStaticFunc()
+'procedure       private Static Sub myStaticSub()
 
-
-
-CTL-G to get to immediate window
-	?Application.EnableEvents
-	?Application.ActiveSheet.Name
-	?ActiveSheet.CodeName 
-
-Debug.Print Application.ActiveCell.CurrentRegion.Value
-
-Debug.Print Application.ActiveWindow.ActiveCell.Address
-
-you can get an array range like this
-?ActiveCell.CurrentRegion.Address
+' if you need a global static  variable, define it as Public
 
 
-check these out...
-  ActiveCell.CurrentRegion.Calculate
-  ActiveCell.CurrentRegion.CurrentArray
-  ActiveCell.CurrentRegion.Delete
-  ActiveCell.CurrentRegion.ListNames
-  ActiveCell.CurrentRegion.Select
-  ActiveCell.CurrentRegion.Ungroup
+Sub f9handler()
 
 
+Dim str_cell As String
 
-Application.CalculationInterruptKey
-	?xlEscKey		 1 
-	?xlNoKey		 0 
-	?xlAnyKey		 2 
+ActiveCell.Calculate
 
+Application.Wait (Now + TimeValue("0:00:1"))
 
+str_cell = CStr(ActiveCell.Address) & " " & CStr(ActiveCell.Formula)
 
+Debug.Print "Logging " & str_cell
 
- 
-
-
-
-
-Private Sub TestCalculateFullRebuild()
-Application.CalculateFullRebuild
-End Sub
-
-
-
-
-
-
-Sub CalculateEveryCell()
-
-Dim ws_count As Integer, I As Integer
-Dim cur_sheet As Worksheet
-Dim last_row As Integer, last_col As Integer
-Dim rng As Range
-
-Dim PathAndFile As String
-  
-PathAndFile = "C:\_InProgress\Work\EveryCalculatedCell.txt"
-  
-
-
-Open PathAndFile For Output As 10
-
-ws_count = ActiveWorkbook.Worksheets.Count
-        
-        
-For I = 1 To ws_count
-
-Set cur_sheet = ActiveWorkbook.Worksheets(I)
-Debug.Print "Processing " & cur_sheet.Name
-
-    If WorksheetFunction.CountA(ActiveSheet.UsedRange) = 0 Then
-        Debug.Print "Sheet is empty "
-    Else
-        last_row = cur_sheet.Cells.SpecialCells(xlLastCell).Row
-        last_col = cur_sheet.Cells.Find("*", searchorder:=xlByColumns, searchdirection:=xlPrevious).Column
-        
-        Debug.Print "Last Row   " & last_row
-        Debug.Print "Last Col   " & last_col
-        
-        Set rng = cur_sheet.Range(Cells(1, 1).Address, Cells(last_row, last_col).Address)
-        
-        Debug.Print "Processing up to  " & rng.Address
-        
-        
-        ' For Each c In cur_sheet.Range(Cells(1, 1), Cells(last_row, last_col)).Cells
-        For Each c In rng.Cells
-        If c.HasArray Then
-                Print #10, "CalculateEver :      ", cur_sheet.Name, "   : ", c.Address, "  :  ", c.CurrentRegion.Address
-                c.CurrentRegion.Calculate
-        Else
-                Print #10, "CalculateEver :      ", cur_sheet.Name, "   : ", c.Address, "  :  "
-                c.Calculate
-        End If
-
-     
-          
-        Next c
-    End If
-Next I
-    
-Close #10
+save_stats (str_cell)
 
 End Sub
 
+‘   to call   =save_stats("")
+Function save_stats(str_source As String)
+
+Dim rng_stat1, rng_stat2, rng_stat3 As Range
+
+Dim PathAndFile, str_region, str_user As String
+Dim dbl_python_version As Double
+
+Dim str_timestamp As String
+Dim str_output As String
+
+save_stats = "Error"
 
 
-Private Sub Worksheet_Calculate()
-  Dim PathAndFile As String
-  Dim time_str As String
-  
-  time_str = Format(Now(), "hh:nn:ss")
-  PathAndFile = "C:\_InProgress\Work\ChangedCells.txt"
-    
-    Open PathAndFile For Append As 1
-    Print #1, time_str, "   ", "Calculate : Volatile :      "
-    Close #1
+str_user = Application.UserName
+str_region = "NA"
+dbl_python_version = 3.78
 
-End Sub
+PathAndFile = VBA.Environ("TEMP") & "\" & Application.UserName & CStr(dbl_python_version) & "_" & str_region & ".txt"
+
+Debug.Print "Saving to " & PathAndFile
+
+
+str_timestamp = Format(Now(), "h:n:s AM/PM")
+
+Set rng_stat1 = Worksheets("TestMe").Range("F1")
+Set rng_stat2 = Worksheets("TestMe").Range("F2")
+Set rng_stat3 = Worksheets("TestMe").Range("F3")
+
+
+' Close #1
+
+str_output = str_timestamp & "," & "," & CStr(rng_stat1) & "," & CStr(rng_stat2) & "," & CStr(rng_stat3) & "," & CallCount & "," & str_source
+
+Open PathAndFile For Append As 1    ' open for Output or Append or Input
+
+
+
+Print #1, str_output
+
+Close #1
+
+save_stats = "Good Job"
+
+End Function
+
+
+
+' -- to call... =NumCalls(A1)
+
+Function NumCalls(d As Variant) As Integer
+
+' Static CallCount As Integer
+
+Debug.Print "Call count is now " & CStr(CallCount)
+
+CallCount = CallCount + 1
+NumCalls = CallCount
+
+End Function
+
+
+
