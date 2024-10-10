@@ -1,0 +1,285 @@
+python -h		shows all options
+-I			run script but do so interactively so you can debug an error
+-v			verbose
+-vv			very verbose
+python --help-env	describes the env variables (PYTHONPATH, PYTHONHOME,etc..) ( not the values )
+python -c print('Hello')
+python -m		run a module as a script
+python -d		debug
+python -V		print version same as --version
+
+os.getcwd()
+os.chdir(r"C:\Users\arono\source\python")
+
+PYTHONPATH=C:\Users\arono\anaconda3\pkgs\mysql-connector-python-8.0.18-py36h13ed8b8_1\Lib\site-packages
+
+python -m pip 			parameters include install, download, list, show, config
+py -m pip list -v 			see everything 
+
+
+x.__dir__()   		list of names in the current local scope OR attributes of a method
+x.__str__() 		displays data in a single string representation
+x.__module__		gives the module your object belongs to
+
+These special attributes exist for objects, instances or modules
+object.__dict__				dictionary of all attributes
+instance.__class__			the class to which the instance belongs.
+module.__file__			the file or folder of this module
+module.__doc__			whats inside the triple quotes of the module
+module.__name__			the name of the module
+
+dir(sympy) or dir()
+sys.path()
+sys.platform
+sys.path_importer_cache
+sys.modules
+sys.path
+sys.version
+
+for dist in __import__('pkg_resources').working_set:
+    print(dist.project_name.replace('Python', ''))
+
+py -m pip show matplotlib
+py -m pip list -v
+
+export PYTHON_PATH=$SYBASE/SYABASE_OCS/python/python34_64r/lib
+
+import pyodbc
+conn_str=”DRIVER=/cs/vision……/libsybdrvodb.so”, PORT=123, DATABASE=fss, UID=visadmin, PWD=
+
+conn = mysql.connector.connect(host='localhost',   database='DATA607', user='root', password=mysql_password)
+        if conn.is_connected():
+            print('Connected to MySQL database')
+
+
+
+pstree -l 1234
+pgrep -aef vismon
+pwdx 12345
+gdb tran.ems core
+getent passwd 			same as ypcat passwd
+getent | cut -d : -f1		to see the first field
+at now < script
+
+ps –e –o “user pid”
+ps –e –o “time args”
+ps –e –o “stime”					start time
+ps –e –o “osz”					virtual memory
+ps –e –o “rss”					relative size
+ps -aeo "user pid ppid pcpu pmem vsz stime time args"
+finger  -check interactive jobs across network
+who     -shows log ons, aka w
+uptime
+free		last		users		jobs		top
+
+/etc/profile executes 1st
+to remove duplicate records from a file
+sort<file.txt | uniq
+
+alias path="echo \${PATH} | awk -F: '{ for (i = 1; i <= NF; i++) printf(\"%02d:%s\n\", i, \$i) }'"   # do this for CLASSPATH, PERL5LIB, etc..
+du -k | sort -n 
+find . -type f -mtime +30 -exec rm -rf {} \;
+find . -xdev -size 100000000c -exec ls -l {} \; | sort -rn | head -10
+find .  -name '*.[chly]' -print | sort > file
+find . -type f -mtime -1 | xargs grep core:Fr | awk -F: '{ print $1 }' | xargs ls -l 
+find . -type f -mtime +30 -exec rm -rf {} \;
+find . -type d -mtime +30 -exec rmdir {}  \;
+find . -type f -exec grep load {} \; -print | more
+find . -type f -mtime -1  -exec tail -10 {} \;
+find . -name Tib\* -ctime -8 -exec  grep XS0306733014 {} \;
+find -name "*.pl"		#   must quote a wild card or else the shell will expand them
+find . -name '*.pl' |xargs grep -n socket
+	print all files and line#s down the directory tree where 'socket' appears
+find . -type f -atime -90 	# files accessed less than 90 days ago
+find . | wc			to count the # of files in a file tree
+find . -type f -mtime -1 -print   	find only files modified < 1 day   
+find . -type f -mtime  1 -print	modified 1 day ago
+find . -type f -mtime +1 -print	  	           > 1
+
+xargs sends input stream as many parms to 1 cmd, this may not work for you so...
+	-n 1 	enforces 1 parm per cmd
+ find . -type f | xargs -n 1 tail -10 		 # same as –exec 
+ls -ltr /var/adm/crash/*Edit* | awk '{ print $6 " " $7 " " $8 ",  nsc27n01" }'      
+find . -type f -mtime -1 | xargs grep core | awk -F: '{ print $1 }' | xargs ls –l
+
+man man | col -b > temp				     col - reverse line-feeds filter
+
+cat –ev		shows cntl characters
+lsof	who is using this file
+lsof –i  who is using this port   
+
+windows ctl char problem ---> dos2unix, vi -b, cat -ev
+windows line terminator is 1 byte more than unix, thus file sizes differ
+
+to remove a unix file with leading metacharacter
+rm ./-badfile  or mv ./#badfile goodfile
+od -h
+man ascii
+
+lsof	who is using this file
+lsof –i  who is using this port   
+
+truss find . -name *cpp -print >output 2>&1
+truss –p 123   # identify it by pid
+date '+ 20%y%m%d'		#   20080325
+
+which		-searches your path
+whereis		-searches all paths
+apropos
+man -k			-both take a search parameter for related cmds
+man –l output 		-searches man pages for string output
+
+database of commands is in /usr/local/man/whatis
+man directories		/usr/share/man /usr/contrib/man /usr/local/man /apps/systr/perl5/man
+
+ls -l | awk '{ print $5 " " $9 }' | sort -n  	# to sort by file size
+du –r | sort –n		- to isolate disk usage issues
+uname  gives OS (-n gives cluster/node    -X gives all info –r gives version)
+nslookup	(give name or IP to run in non-interactive mode)
+hostname	(gives cluster and node)
+/usr/openwin/bin/xterm -d @D -ls +rv -sb  -sl 2000 -fg yellow -bg blue
+
+mail
+mail vs. mailx (mailx is for the network)
+mailx -s "Test subject" tom.buonora@barcap.com $datafile
+mailx -s "Bony Wire" bonywire@barcap.com < $userfile
+cat $file | mail tom.buonora@barcap.com
+echo "To: tom@abc.com\nSubject: test subject\nthis is the msg" | mail tom@abc.com
+	-make sure no leading spaces
+“d” delete in mail, but you can also vi the /var/ mailfile
+
+mail tom.buonora@barcap.com <<- EOF
+	$(date)
+	Hello
+EOF
+$MAIL	contains the directory of the file that contains the email
+		--- /var/spool/mail/$USER
+
+
+to grab fields 1 and 2 from a tilde delimited file
+cat dnl_fift.load | awk -F~ '{ print $1 $2 }' > dftest
+and to find the duplicates...
+uniq -d dftest
+
+To insert a new line in the middle of a file
+cut -b 1-48, "\n", 48-90 fix > testme
+
+to parse out a few fields from a file (by byte position)		cut -b 70-84,536-540,585-616  posdldep > pos2  
+
+AWK	-$0	refers to current record		-$1	refers to first field		-$2	refers to 2nd field
+
+awk /credit/ {print $1} myfile			-prints first field for every record that has the string 'credit'
+						-default field separator is tab or space
+awk /credit/ myfile				-this will print all records with string 'credit'
+awk /^H/ myfile					-print all records that begin with H
+awk '/P100/, /P103/' myfile			-print all records with P100 through P103 in it
+
+grep 912828 becdldep | nawk '{ print substr($0,203,31) "  ,   "  substr($0,830,15) }'
+
+awk 'pattern {action}' file
+
+awk '$2~/foo/{print $3,$1}'
+	print the 3rd and 1st fields if the 2nd field contains foo
+
+
+awk -F:	use : as a field separator
+
+YYMMDD="`echo ${DDMMYY} | awk '{ print substr($0,5,2) substr($0,3,2) substr($0,1,2) }'`"     # awk substrings
+
+To view only the file names in columnar format		ll | awk '{ print $9 }'
+
+
+sed				d (delete) n (replace) a (append) i (insert) c (replace)
+sed '/q1/d' EMPFILE	-deletes all lines matched by q1
+sed s/old/new/g EMPFILE	-replaces all old with new
+
+sed s/\"\$//g cuswrk | sed s/^\"//g > cusfilep	# to remove a full line from quotes
+sed 's/AS400/UNIX/' tomtest1 > tomtest2		 # search and replace
+sed -n  '1,2 p' test.out				#   print 1st 2 lines
+sed '11,$ d' <file 	delete lines 11 to the end (prints 1st 10 lines)
+
+
+(you have to sort a file before using uniq)
+uniq -u testfile			-displays unique lines in the file
+uniq -d testfile			-displays duplicate lines
+uniq -c testfile			-displays every line with a count of its occurence
+	
+script				-contains commands and UNIX responses from a session (job log)
+script mylogfile			-records your job
+script -a mylogfile			-appends to your file
+
+split -300 cusfilep cus		-this splits cusfilep into many files, 300 lines each, cusaa, cusab, 
+	-the new files will be found in the /temp directory
+csplit tranfilp '/CBNK/' '/GBON/'	-creates 1 file with all CBNK trades, 1 with all GBON
+
+$$		process ID
+$_		last variable
+$?		last retst (0 = success, 1= failure)
+	- some commands may put unexpected values in $?
+
+
+$0		name of process
+$1		1st parameter or set variable
+$2		2nd 
+file systems
+/etc is for system configuration files
+/home is for user home directories
+/opt and /usr are read-only for software apps  ( /opt is considered a “add-on”  )
+	our autosys and mq was in /opt
+/usr/local for apps to be protected from system upgrades
+/var is for variably sized files, logs, or other output files go to /var or /tmp 
+
+/tmp	gets cleaned out when the box gets bounced      /var/tmp does not
+/sbin 	binaries for super user to run system, it is not part of $PATH
+where /bin and /sbin contain executables, /lib and /usr/lib contain modules, (.so)
+/dev is devices, i.e. cat myfile > /dev/lp0 sends it to your printer
+
+crontab			jobs are stored in /var/spool/cron/crontabs
+at			one time only jobs stored in  /var/spool/cron/atjobs/ 
+cron format is  mm hh (day of month 1-31) (month of year 1-12) (weekday 0-6)
+55 03 * * 6   is 3:55am every saturday
+umask 027	gives 
+			- user all permissions	( 0 )
+			- users group read and execute permission  ( 2 )
+everyone else nothing ( 7 )
+umask subtracts from the system default i.e., umask 027 subtracts 2 from the group and 7 from the others group
+
+chmod u+s ndma*   sets on sticky bit to owner
+chmod g+r ndma*   sets on read to group
+chmod o+x ndma*   sets on execution to others
+chmod a+x	   some unix permissions are only covered by "a"
+fuser tells you what pid (job) has a file opened
+cat ftpit.sh | nl	-- nl numbers output
+$ENV should hold the script to run when a new shell is executed
+
+$TERM is vt100 on systr, but xterm on arts
+vi   :syntax off 		turns off the colors
+
+set -o		shows all options
+set  -n same as set -o noexec  (syntax check a shell script)
+set -x same as set -o xtrace  (set +x to shut it off)
+set -v same as set -o verbose
+set			shows all assigned variables, exported or not
+unset			removes an assignment
+env 			shows all exported variables
+
+printenv		-shows “whole” environment
+
+history -r grep	shows recent cmds with grep
+
+cp "$@" $PWD
+
+> file is better than rm file because it forces instant garbage collection
+
+LD_LIBRARY_PATH is an environment variable you set to give the run-time shared library loader (ld.so) an extra set of directories to look for when searching for shared libraries.
+
+
+
+
+
+
+
+
+
+
+
